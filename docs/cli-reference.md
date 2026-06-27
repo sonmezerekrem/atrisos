@@ -27,21 +27,23 @@ Running `atrisos` with no arguments launches the TUI.
 
 ### `atrisos up <stack>`
 
-Start a stack. If Traefik is not running, starts it first.
+Start a stack. If Traefik is not running, starts it first. If the stack has `auto_start: true` or `backup.enabled: true`, installs the corresponding systemd/launchd units.
 
 ```sh
 atrisos up myapp
-atrisos up myapp --pull   # pull latest images before starting
-atrisos up myapp --build  # build images from Dockerfile before starting
+atrisos up myapp --pull    # pull latest images before starting
+atrisos up myapp --build   # build images from Dockerfile before starting
+atrisos up --all           # start all discovered stacks sequentially
 ```
 
 ### `atrisos down <stack>`
 
-Stop a stack and remove its containers. Volumes are preserved.
+Stop a stack and remove its containers. Volumes are preserved. Removes any installed systemd/launchd units for that stack.
 
 ```sh
 atrisos down myapp
 atrisos down myapp --volumes  # also remove named volumes (destructive)
+atrisos down --all            # stop all discovered stacks sequentially
 ```
 
 ### `atrisos restart <stack>`
@@ -58,8 +60,9 @@ Pull latest images and recreate containers with zero additional downtime where p
 
 ```sh
 atrisos update myapp
-atrisos update myapp --pull   # explicit pull before recreate (default behavior)
+atrisos update myapp --pull     # explicit pull before recreate (default)
 atrisos update myapp --no-pull  # recreate without pulling (e.g. to apply .env changes)
+atrisos update --all            # update all discovered stacks sequentially
 ```
 
 ### `atrisos render <stack>`
@@ -110,6 +113,17 @@ Show individual containers in a stack (equivalent to `podman compose ps`).
 ```sh
 atrisos ps myapp
 ```
+
+### `atrisos backup <stack>`
+
+Manually trigger a backup for a stack regardless of its configured schedule. Backs up the named volumes listed in `backup.volumes` (or all named volumes if the list is empty) using the bundled restic binary.
+
+```sh
+atrisos backup myapp
+atrisos backup myapp --dry-run   # show what would be backed up without running
+```
+
+Scheduled backups are triggered automatically by systemd timers (Linux) or launchd plists (macOS) installed when the stack is started. This command is for on-demand runs.
 
 ---
 

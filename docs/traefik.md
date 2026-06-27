@@ -263,6 +263,11 @@ services:
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
       - "--certificatesresolvers.letsencrypt.acme.email=${ACME_EMAIL}"
       - "--certificatesresolvers.letsencrypt.acme.storage=/letsencrypt/acme.json"
+      - "--certificatesresolvers.letsencrypt-staging.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt-staging.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt-staging.acme.email=${ACME_EMAIL}"
+      - "--certificatesresolvers.letsencrypt-staging.acme.storage=/letsencrypt/acme-staging.json"
+      - "--certificatesresolvers.letsencrypt-staging.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory"
       - "--api.dashboard=true"
       - "--log.level=INFO"
     ports:
@@ -292,9 +297,27 @@ volumes:
 
 - Certificates are issued via the HTTP-01 challenge — port 80 must be reachable from the internet.
 - Certs are stored in the `atrisos_letsencrypt` Podman volume and persist across Traefik restarts.
-- ACME email is read from the global config (`traefik.acme_email`) and can be overridden per-domain entry with a `acme_email` field.
+- ACME email is read from the global config (`traefik.acme_email`) and can be overridden per-domain entry with an `acme_email` field.
 
-**Rate limits**: Let's Encrypt allows 5 duplicate cert requests per week per domain. Use a staging domain or set `tls: false` during development.
+### tls values
+
+| Value | Behavior |
+|-------|----------|
+| `true` (default) | Production Let's Encrypt — trusted cert, rate-limited (5 duplicate requests/week/domain) |
+| `staging` | Let's Encrypt staging CA — no rate limits, browser shows untrusted cert warning. Use during setup and testing. |
+| `false` | HTTP only, no certificate requested |
+
+### Staging resolver
+
+The managed Traefik config defines two ACME resolvers — `letsencrypt` and `letsencrypt-staging`. When a domain entry has `tls: staging`, atrisos generates labels that reference `letsencrypt-staging` instead of `letsencrypt`:
+
+```
+traefik.http.routers.myapp-web-a3f291.tls.certresolver=letsencrypt-staging
+```
+
+Switching a domain from `staging` to `true` in `config.yml`, then running `atrisos update myapp`, will recreate the container with the production resolver and trigger a new ACME challenge.
+
+**Rate limits**: Let's Encrypt allows 5 duplicate cert requests per week per domain. Use `tls: staging` during setup; switch to `tls: true` when ready for production.
 
 ---
 

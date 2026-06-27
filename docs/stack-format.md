@@ -88,7 +88,10 @@ domains:
     host: "myapp.example.com"   # public hostname
     port: 3000                  # container port the service listens on
     path_prefix: "/"            # optional, default "/"
-    tls: true                   # optional, default true (ACME/Let's Encrypt)
+    tls: true                   # optional: true | staging | false (default: true)
+                               #   true    → production Let's Encrypt (trusted cert)
+                               #   staging → LE staging CA (no rate limits, untrusted cert)
+                               #   false   → HTTP only, no certificate
     middlewares: []             # optional Traefik middleware names (advanced)
 
   - service: "api"
@@ -99,10 +102,15 @@ domains:
 update:
   mode: "manual"               # "manual" | "watch" — overrides global default
 
+# ── Boot ────────────────────────────────────────────────────
+auto_start: false              # if true, atrisos installs a systemd/launchd unit
+                               # so this stack starts automatically after a reboot
+
 # ── Backup ──────────────────────────────────────────────────
 backup:
   enabled: false
-  schedule: "0 2 * * *"       # cron syntax
+  schedule: "0 2 * * *"       # cron syntax — atrisos installs a systemd timer / launchd
+                               # plist on `atrisos up` to trigger this automatically
   destination: "~/backups/myapp"
   volumes:
     - db_data
@@ -123,7 +131,7 @@ Each entry in `domains` maps one hostname (optionally with a path prefix) to one
 | `host` | yes | — | Public hostname (e.g. `myapp.example.com`) |
 | `port` | yes | — | Container port the service listens on |
 | `path_prefix` | no | `/` | Route only requests matching this path prefix |
-| `tls` | no | `true` | Enable HTTPS via ACME. Set `false` for HTTP-only |
+| `tls` | no | `true` | `true` = production LE cert, `staging` = LE staging (no rate limits, untrusted), `false` = HTTP only |
 | `middlewares` | no | `[]` | Traefik middleware names to attach to this router |
 
 ### Minimal config.yml (no routing)
@@ -142,7 +150,7 @@ atrisos validates `config.yml` on load and reports errors before attempting to s
 | Field | Rule |
 |-------|------|
 | `domains[*].service` | Must match a service name in `compose.yml` |
-| `domains[*].host` | Must be a valid hostname. If `tls: true`, must be a public domain (ACME cannot issue certs for bare IPs or `.local`) |
+| `domains[*].host` | Must be a valid hostname. If `tls: true` or `tls: staging`, must be a public domain (ACME cannot issue certs for bare IPs or `.local`) |
 | `domains[*].port` | Integer 1–65535 |
 | `domains[*].path_prefix` | Must start with `/` |
 | `backup.schedule` | Valid 5-field cron expression |
@@ -206,6 +214,8 @@ domains:
 
 update:
   mode: manual
+
+auto_start: true
 
 backup:
   enabled: true

@@ -70,7 +70,40 @@ Traefik router names follow the pattern `<stack-dir>-<service>-<hash>` where `<h
 
 ### TUI log streaming
 
-The log panel uses a single goroutine that runs `podman compose logs -f --timestamps --no-color` as a subprocess and streams lines into a bubbletea `viewport` component via a channel. All services are multiplexed into one stream, each line prefixed with the service name. The viewport supports keyboard scrolling. The goroutine is cancelled when the log panel is closed.
+The log panel uses a single goroutine that runs `podman compose logs -f --timestamps --no-color` as a subprocess and streams lines into a bubbletea `viewport` component via a channel. All services are multiplexed into one stream, each line prefixed with the service name. The viewport supports keyboard scrolling and buffers the last **2000 lines** (hardcoded). Older lines are dropped as new ones arrive. The goroutine is cancelled when the log panel is closed.
+
+### Backup scheduling via system scheduler
+
+atrisos does not run a daemon, so backup schedules are handed off to the OS scheduler. When a stack has `backup.enabled: true` and a `backup.schedule` cron expression, `atrisos up` installs a scheduler unit and `atrisos down` removes it.
+
+- **Linux**: generates a systemd user service + timer pair under `~/.config/systemd/user/`:
+  - `atrisos-backup-<stack>.service` — runs `atrisos backup <stack>`
+  - `atrisos-backup-<stack>.timer` — cron schedule converted to `OnCalendar=` syntax
+  - Enabled via `systemctl --user enable --now atrisos-backup-<stack>.timer`
+- **macOS**: generates a launchd plist at `~/Library/LaunchAgents/io.atrisos.backup.<stack>.plist` with `StartCalendarInterval` keys parsed from the cron expression. Loaded via `launchctl load`.
+
+### Auto-start on boot
+
+Stacks with `auto_start: true` in `config.yml` are registered with the OS init system so their containers start after a reboot without manual intervention.
+
+- **Linux**: generates `~/.config/systemd/user/atrisos-<stack>.service` with `WantedBy=default.target`. Enabled via `systemctl --user enable atrisos-<stack>`. The service runs `atrisos up <stack>`.
+- **macOS**: generates `~/Library/LaunchAgents/io.atrisos.<stack>.plist` with `RunAtLoad: true`. Loaded via `launchctl load`.
+
+Both are installed on `atrisos up` when `auto_start: true` and removed on `atrisos down`.
+
+### Bulk operations
+
+`atrisos up --all`, `atrisos down --all`, and `atrisos update --all` operate on all discovered stacks sequentially in discovery order (root dir stacks first, then registered extra paths, both alphabetically). A single stack failure prints an error and continues to the next stack rather than aborting the whole operation.
+
+### ACME staging
+
+The `tls` field in each `domains` entry accepts three values:
+
+- `true` — production Let's Encrypt (trusted cert, rate-limited)
+- `staging` — Let's Encrypt staging CA (no rate limits, browser shows untrusted warning)
+- `false` — HTTP only, no certificate
+
+Traefik uses a separate certificate resolver (`letsencrypt-staging`) for staging domains, configured in the managed Traefik compose file alongside the production resolver.
 
 ### Stack init templates
 
@@ -92,6 +125,7 @@ atrisos/
 │   ├── register.go
 │   ├── list.go
 │   ├── init.go
+│   ├── backup.go
 │   └── traefik.go
 ├── internal/
 │   ├── config/             # global config loading
@@ -102,6 +136,7 @@ atrisos/
 │   ├── watcher/            # fsnotify-based file watcher
 │   ├── backup/             # backup scheduling and restic invocation
 │   ├── restic/             # bundled restic binary management (download, verify, exec)
+│   ├── scheduler/          # systemd timer / launchd plist generation and management
 │   └── templates/          # GitHub template fetching and local cache management
 ├── tui/                    # bubbletea TUI components
 │   ├── app.go              # root model
