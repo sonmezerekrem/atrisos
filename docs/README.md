@@ -34,3 +34,4 @@ atrisos lets you run self-hosted applications as Compose stacks with a consisten
 | [cli-reference.md](cli-reference.md) | All CLI commands and flags |
 | [global-config.md](global-config.md) | Global atrisos config file schema |
 | [install.md](install.md) | Installation and first-run guide |
+| [templates.md](templates.md) | Stack init templates: format, available templates, how to add new ones |

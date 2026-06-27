@@ -118,7 +118,7 @@ atrisos render myapp --diff   # show diff between original compose.yml and merge
 
 ## Label generation
 
-For each entry in `config.yml`'s `domains` array, atrisos generates a set of Traefik labels. The router name is `<stack-dir-name>-<service-name>` (lowercased, non-alphanumeric chars replaced with `-`).
+For each entry in `config.yml`'s `domains` array, atrisos generates a set of Traefik labels. The router name is `<stack-dir>-<service>-<hash>` where `<hash>` is the first 6 characters of the SHA-256 of the stack's absolute path (lowercased, non-alphanumeric chars in the dir/service parts replaced with `-`). The hash suffix prevents collisions between two stacks that share the same directory name and service name but live at different paths.
 
 ### HTTPS (tls: true, default)
 
@@ -131,23 +131,23 @@ domains:
     tls: true
 ```
 
-Generated labels on the `web` container:
+Generated labels on the `web` container (hash `a3f291` is derived from the stack's absolute path):
 ```
 traefik.enable=true
 
 # HTTPS router
-traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
-traefik.http.routers.myapp-web.entrypoints=websecure
-traefik.http.routers.myapp-web.tls=true
-traefik.http.routers.myapp-web.tls.certresolver=letsencrypt
+traefik.http.routers.myapp-web-a3f291.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web-a3f291.entrypoints=websecure
+traefik.http.routers.myapp-web-a3f291.tls=true
+traefik.http.routers.myapp-web-a3f291.tls.certresolver=letsencrypt
 
 # Service (load balancer target)
-traefik.http.services.myapp-web.loadbalancer.server.port=3000
+traefik.http.services.myapp-web-a3f291.loadbalancer.server.port=3000
 
 # HTTP → HTTPS redirect router
-traefik.http.routers.myapp-web-http.rule=Host(`myapp.example.com`)
-traefik.http.routers.myapp-web-http.entrypoints=web
-traefik.http.routers.myapp-web-http.middlewares=https-redirect
+traefik.http.routers.myapp-web-a3f291-http.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web-a3f291-http.entrypoints=web
+traefik.http.routers.myapp-web-a3f291-http.middlewares=https-redirect
 ```
 
 The `https-redirect` middleware is defined globally in the managed Traefik config — atrisos creates it once.
@@ -166,9 +166,9 @@ domains:
 Generated labels:
 ```
 traefik.enable=true
-traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
-traefik.http.routers.myapp-web.entrypoints=web
-traefik.http.services.myapp-web.loadbalancer.server.port=3000
+traefik.http.routers.myapp-web-a3f291.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web-a3f291.entrypoints=web
+traefik.http.services.myapp-web-a3f291.loadbalancer.server.port=3000
 ```
 
 ### Path prefix routing
@@ -184,7 +184,7 @@ domains:
 
 The rule becomes:
 ```
-traefik.http.routers.myapp-api.rule=Host(`myapp.example.com`) && PathPrefix(`/api`)
+traefik.http.routers.myapp-api-a3f291.rule=Host(`myapp.example.com`) && PathPrefix(`/api`)
 ```
 
 ### Multiple domains on one stack
@@ -203,15 +203,15 @@ domains:
 
 Produces labels on `web`:
 ```
-traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
-traefik.http.services.myapp-web.loadbalancer.server.port=3000
+traefik.http.routers.myapp-web-a3f291.rule=Host(`myapp.example.com`)
+traefik.http.services.myapp-web-a3f291.loadbalancer.server.port=3000
 ...
 ```
 
 And labels on `api`:
 ```
-traefik.http.routers.myapp-api.rule=Host(`api.example.com`)
-traefik.http.services.myapp-api.loadbalancer.server.port=8080
+traefik.http.routers.myapp-api-a3f291.rule=Host(`api.example.com`)
+traefik.http.services.myapp-api-a3f291.loadbalancer.server.port=8080
 ...
 ```
 
@@ -227,7 +227,7 @@ domains:
     port: 3000
 ```
 
-Generates two routers (`myapp-web-0`, `myapp-web-1`) both pointing to the same service backend. The service entry is deduplicated.
+Generates two routers (`myapp-web-a3f291-0`, `myapp-web-a3f291-1`) both pointing to the same service backend. The service entry is deduplicated.
 
 ---
 
@@ -339,4 +339,4 @@ atrisos traefik dashboard  # print dashboard URL
 | Certificate error in browser | ACME HTTP-01 failed — check port 80 is reachable and the domain resolves to this host |
 | Labels not picked up | Service not attached to `atrisos_net` — run `atrisos render myapp` to verify the merged compose includes the network |
 | `podman.sock not found` | Socket path detection failed — run `podman info --format '{{.Host.RemoteSocket.Path}}'` and file a bug |
-| Multiple domains, wrong service gets traffic | Check router names with `atrisos traefik status` — name collision between stacks is possible if two stacks share a service name; use unique stack directory names |
+| Wrong router name in Traefik dashboard | Router names include a path hash suffix (e.g. `myapp-web-a3f291`) — use `atrisos traefik status` to list active router names |

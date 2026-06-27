@@ -65,9 +65,11 @@ The setup wizard:
 1. Creates `~/.config/atrisos/config.yml` with defaults
 2. Prompts for your ACME email (for Let's Encrypt TLS)
 3. Prompts for your stacks root directory (default `~/atrisos-stacks`)
-4. On macOS: initializes and starts a `podman machine` named `atrisos` if none exists
+4. **macOS only**: if no `podman machine` exists, silently creates and starts one named `atrisos` with a progress indicator (~1–2 min, one-time). On subsequent runs atrisos starts the machine automatically if it is stopped.
 5. Creates the `atrisos_net` Podman network
 6. Starts the managed Traefik container
+
+No additional tools need to be installed for backup support — atrisos downloads and manages its own `restic` binary the first time a backup runs.
 
 ---
 

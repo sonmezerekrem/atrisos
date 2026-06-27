@@ -31,7 +31,9 @@ atrisos binary (Go)
 
 ### Podman, not Docker
 
-Podman is daemonless and rootless by default. atrisos invokes `podman compose` (Podman v4.7+ has built-in compose support) or falls back to `podman-compose` (Python wrapper). On macOS, Podman runs inside a lightweight VM (`podman machine`) — atrisos handles machine init on first run.
+Podman is daemonless and rootless by default. atrisos invokes `podman compose` (Podman v4.7+ has built-in compose support) or falls back to `podman-compose` (Python wrapper).
+
+On macOS, containers cannot run directly on the host — they require a Linux kernel. Podman solves this with `podman machine`, a lightweight Linux VM (Apple Virtualization framework on Apple Silicon, QEMU on Intel). On first run atrisos silently creates and starts a machine named `atrisos` if none exists, showing a progress indicator. Subsequent runs start the machine automatically if it is stopped. On Linux, Podman runs natively — no VM involved.
 
 ### No atrisos daemon
 
@@ -54,9 +56,25 @@ Discovery walks the root dir (one level deep, each subdirectory is a candidate s
 Two modes, configurable globally and per-stack:
 
 - `manual` — user runs `atrisos update <stack>` to pull images and recreate containers
-- `watch` — atrisos watches the stack directory for file changes and re-applies automatically
+- `watch` — atrisos watches the stack directory for file changes and re-applies via `podman compose up -d` (Compose reconciles the diff — unchanged containers are left running, only changed services are recreated)
 
 The global default is set in `~/.config/atrisos/config.yml`. Each stack's `config.yml` can override.
+
+### Bundled restic
+
+atrisos ships with a bundled `restic` binary for volume backups. On first backup run, atrisos downloads the correct restic release for the current OS/arch from the official restic GitHub releases and stores it at `~/.config/atrisos/bin/restic`. Users do not need to install restic separately. atrisos verifies the binary checksum after download. The bundled restic is only used by atrisos internals — it is not added to the user's PATH.
+
+### Traefik router naming and collision avoidance
+
+Traefik router names follow the pattern `<stack-dir>-<service>-<hash>` where `<hash>` is the first 6 characters of the SHA-256 of the stack's absolute path. This prevents collisions when two stacks in different locations happen to share the same directory name and service name. Example: two stacks both named `myapp` with a `web` service get routers `myapp-web-a3f291` and `myapp-web-d8c104`.
+
+### TUI log streaming
+
+The log panel uses a single goroutine that runs `podman compose logs -f --timestamps --no-color` as a subprocess and streams lines into a bubbletea `viewport` component via a channel. All services are multiplexed into one stream, each line prefixed with the service name. The viewport supports keyboard scrolling. The goroutine is cancelled when the log panel is closed.
+
+### Stack init templates
+
+`atrisos init` fetches template files from the `templates/` directory in the atrisos GitHub repository (`main` branch) at runtime. Templates are cached locally in `~/.config/atrisos/templates-cache/` after the first download so subsequent `atrisos init` calls work offline. atrisos checks for a newer cache version (by comparing a manifest file) only when online. See [templates.md](templates.md) for the template format and available templates.
 
 ## Go project structure
 
@@ -78,16 +96,18 @@ atrisos/
 ├── internal/
 │   ├── config/             # global config loading
 │   ├── stack/              # Stack struct, loader, discovery
-│   ├── compose/            # podman compose wrapper
+│   ├── compose/            # podman compose wrapper + merge pipeline
 │   ├── traefik/            # Traefik label gen, network, managed stack
 │   ├── registry/           # registry.json read/write
 │   ├── watcher/            # fsnotify-based file watcher
-│   └── backup/             # backup scheduling and execution
+│   ├── backup/             # backup scheduling and restic invocation
+│   ├── restic/             # bundled restic binary management (download, verify, exec)
+│   └── templates/          # GitHub template fetching and local cache management
 ├── tui/                    # bubbletea TUI components
 │   ├── app.go              # root model
 │   ├── stacklist.go        # stack list panel
 │   ├── detail.go           # stack detail panel
-│   └── logs.go             # log streaming panel
+│   └── logs.go             # log streaming panel (multiplexed viewport)
 ├── docs/
 ├── scripts/
 │   └── install.sh          # curl-pipe installer
@@ -106,6 +126,7 @@ atrisos/
 | `github.com/joho/godotenv` | Parse .env files |
 | `github.com/fsnotify/fsnotify` | Watch stack dirs for changes |
 | `github.com/pelletier/go-toml` | Optional: TOML alt for global config |
+| `text/template` (stdlib) | Render stack init templates |
 
 ## Platform-specific behavior
 
