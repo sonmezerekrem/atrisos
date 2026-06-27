@@ -17,144 +17,20 @@ myapp/
 
 ## compose.yml
 
-Standard Compose format. Write it exactly as you would for `docker compose` — atrisos passes it through to `podman compose` unchanged, with one addition: atrisos injects Traefik labels at runtime based on `config.yml` so you don't write labels by hand.
-
-Minimum example:
+Write a standard Compose file describing your services, volumes, and networks — **with no Traefik-related content whatsoever**. No labels, no Traefik network references, no special ports for routing. atrisos handles all of that by merging your compose file with the `domains` config at runtime before invoking `podman compose`.
 
 ```yaml
 services:
   web:
     image: nginx:alpine
-    expose:
-      - "80"
-```
 
-Use `expose` (not `ports`) for services you want routed through Traefik. atrisos only injects Traefik labels on the service named as the entry point in `config.yml` (defaults to the first service).
-
----
-
-## .env
-
-Standard dotenv format. All variables here are available inside `compose.yml` via `${VAR_NAME}`.
-
-```env
-APP_ENV=production
-SECRET_KEY=changeme
-DB_PASSWORD=hunter2
-```
-
-Commit a `.env.example` with placeholder values; add `.env` to `.gitignore`.
-
----
-
-## config.yml
-
-atrisos-specific configuration for the stack. Full schema:
-
-```yaml
-# ── Metadata ────────────────────────────────────────────────
-name: "My App"                 # display name in TUI (default: directory name)
-description: "Short description shown in TUI detail panel"
-tags:
-  - web
-  - production
-meta:                           # free-form key-value pairs, shown in TUI
-  owner: "backend-team"
-  repo: "https://github.com/org/myapp"
-  docs: "https://wiki.internal/myapp"
-  # any additional keys you find useful
-
-# ── Domain routing (Traefik) ────────────────────────────────
-domain:
-  host: "myapp.example.com"    # required for Traefik routing
-  path_prefix: "/"             # optional, default "/"
-  service: "web"               # which compose service to route to (default: first service)
-  port: 80                     # container port to forward to (default: first exposed port)
-  tls: true                    # enable HTTPS via ACME (default: true)
-  acme_email: ""               # override global acme_email for this stack (optional)
-  middlewares: []              # list of Traefik middleware names (advanced, optional)
-
-# ── Update behavior ─────────────────────────────────────────
-update:
-  mode: "manual"               # "manual" | "watch" — overrides global default
-                               # manual: user runs `atrisos update <stack>`
-                               # watch: auto-restart on file changes in stack dir
-
-# ── Backup ──────────────────────────────────────────────────
-backup:
-  enabled: false
-  schedule: "0 2 * * *"       # cron syntax — when to run backups
-  destination: "~/backups/myapp"  # local path or s3://bucket/prefix
-  volumes:                     # which named volumes to back up (default: all)
-    - myapp_data
-```
-
-### Minimal config.yml (no Traefik routing)
-
-```yaml
-name: "My App"
-description: "Internal tool, no public domain needed"
-```
-
-### config.yml with domain routing
-
-```yaml
-name: "Ghost Blog"
-description: "Personal blog"
-tags:
-  - web
-  - blog
-meta:
-  owner: "ekrem"
-
-domain:
-  host: "blog.example.com"
-  service: "ghost"
-  port: 2368
-  tls: true
-
-update:
-  mode: watch
-```
-
----
-
-## Validation rules
-
-atrisos validates config.yml on load and reports errors clearly:
-
-| Field | Rule |
-|-------|------|
-| `domain.host` | Must be a valid hostname. If `tls: true`, must be a real public domain (ACME won't issue certs for IPs or `.local`). |
-| `domain.service` | Must match a service name defined in `compose.yml`. |
-| `domain.port` | Must be in the range 1–65535. |
-| `backup.schedule` | Must be valid cron syntax (5-field). |
-| `backup.destination` | Must be a valid local path or `s3://` URI. |
-| `meta` | Values must be strings. |
-
----
-
-## Example: full stack
-
-```
-myapp/
-├── compose.yml
-├── .env
-├── .env.example
-└── config.yml
-```
-
-**compose.yml**
-```yaml
-services:
-  web:
-    image: ghcr.io/myorg/myapp:latest
-    expose:
-      - "3000"
+  api:
+    image: myorg/api:latest
     environment:
-      - DATABASE_URL=${DATABASE_URL}
+      - DB_URL=${DB_URL}
     depends_on:
       - db
+
   db:
     image: postgres:16-alpine
     volumes:
@@ -166,13 +42,150 @@ volumes:
   db_data:
 ```
 
-**.env**
+Rules for compose.yml:
+- Do not add `labels` with `traefik.*` keys — atrisos injects them.
+- Do not reference `atrisos_net` in `networks` — atrisos injects it for routed services.
+- Do not map host ports (e.g. `ports: - "3000:3000"`) for services routed through Traefik — traffic goes through the shared network.
+- Internal service-to-service communication works normally via Compose's default network.
+
+---
+
+## .env
+
+Standard dotenv format. Variables are available inside `compose.yml` via `${VAR_NAME}`.
+
 ```env
-DATABASE_URL=postgresql://postgres:${DB_PASSWORD}@db:5432/myapp
+APP_ENV=production
+SECRET_KEY=changeme
+DB_PASSWORD=hunter2
+DB_URL=postgresql://postgres:hunter2@db:5432/myapp
+```
+
+Commit a `.env.example` with placeholder values; add `.env` to `.gitignore`.
+
+---
+
+## config.yml
+
+atrisos-specific configuration for the stack.
+
+```yaml
+# ── Metadata ────────────────────────────────────────────────
+name: "My App"
+description: "Short description shown in TUI detail panel"
+tags:
+  - web
+  - production
+meta:                           # free-form key-value pairs, displayed in TUI
+  owner: "backend-team"
+  repo: "https://github.com/org/myapp"
+  docs: "https://wiki.internal/myapp"
+  # any string key-value pairs
+
+# ── Domain routing ──────────────────────────────────────────
+domains:
+  - service: "web"              # must match a service name in compose.yml
+    host: "myapp.example.com"   # public hostname
+    port: 3000                  # container port the service listens on
+    path_prefix: "/"            # optional, default "/"
+    tls: true                   # optional, default true (ACME/Let's Encrypt)
+    middlewares: []             # optional Traefik middleware names (advanced)
+
+  - service: "api"
+    host: "api.example.com"
+    port: 8080
+
+# ── Update behavior ─────────────────────────────────────────
+update:
+  mode: "manual"               # "manual" | "watch" — overrides global default
+
+# ── Backup ──────────────────────────────────────────────────
+backup:
+  enabled: false
+  schedule: "0 2 * * *"       # cron syntax
+  destination: "~/backups/myapp"
+  volumes:
+    - db_data
+```
+
+### domains array
+
+Each entry in `domains` maps one hostname (optionally with a path prefix) to one service in your `compose.yml`. You can have:
+
+- **One domain → one service** (most common)
+- **Multiple domains → different services** (e.g. frontend on `app.example.com`, API on `api.example.com`)
+- **Multiple domains → same service** (e.g. `www.example.com` and `example.com` both pointing to `web`)
+- **Path-based routing on the same host** (e.g. `/` → `web`, `/api` → `api` on the same domain)
+
+| Field | Required | Default | Description |
+|-------|----------|---------|-------------|
+| `service` | yes | — | Service name from `compose.yml` |
+| `host` | yes | — | Public hostname (e.g. `myapp.example.com`) |
+| `port` | yes | — | Container port the service listens on |
+| `path_prefix` | no | `/` | Route only requests matching this path prefix |
+| `tls` | no | `true` | Enable HTTPS via ACME. Set `false` for HTTP-only |
+| `middlewares` | no | `[]` | Traefik middleware names to attach to this router |
+
+### Minimal config.yml (no routing)
+
+```yaml
+name: "Internal Tool"
+description: "No public domain needed"
+```
+
+---
+
+## Validation rules
+
+atrisos validates `config.yml` on load and reports errors before attempting to start anything.
+
+| Field | Rule |
+|-------|------|
+| `domains[*].service` | Must match a service name in `compose.yml` |
+| `domains[*].host` | Must be a valid hostname. If `tls: true`, must be a public domain (ACME cannot issue certs for bare IPs or `.local`) |
+| `domains[*].port` | Integer 1–65535 |
+| `domains[*].path_prefix` | Must start with `/` |
+| `backup.schedule` | Valid 5-field cron expression |
+| `backup.destination` | Valid local path or `s3://` URI |
+| `meta` | All values must be strings |
+
+---
+
+## Full example
+
+**compose.yml** — plain services, nothing Traefik-related:
+```yaml
+services:
+  web:
+    image: ghcr.io/myorg/myapp:latest
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+
+  api:
+    image: ghcr.io/myorg/myapp-api:latest
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+
+volumes:
+  db_data:
+```
+
+**.env**:
+```env
+DATABASE_URL=postgresql://postgres:supersecret@db:5432/myapp
 DB_PASSWORD=supersecret
 ```
 
-**config.yml**
+**config.yml**:
 ```yaml
 name: "My App"
 description: "Main web application"
@@ -181,12 +194,15 @@ tags:
   - production
 meta:
   owner: "backend-team"
+  repo: "https://github.com/myorg/myapp"
 
-domain:
-  host: "myapp.example.com"
-  service: "web"
-  port: 3000
-  tls: true
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+  - service: "api"
+    host: "api.example.com"
+    port: 8080
 
 update:
   mode: manual
@@ -198,3 +214,10 @@ backup:
   volumes:
     - db_data
 ```
+
+What atrisos does with this before running `podman compose`:
+- Injects Traefik labels onto the `web` service for `myapp.example.com:3000`
+- Injects Traefik labels onto the `api` service for `api.example.com:8080`
+- Attaches `atrisos_net` to `web` and `api` (not `db`, which has no domain entry)
+- Adds the `atrisos_net` external network declaration at the top-level `networks` section
+- Passes the merged compose document to `podman compose` — your original `compose.yml` is never modified

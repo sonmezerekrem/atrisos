@@ -1,6 +1,6 @@
 # Traefik Integration
 
-atrisos manages a single shared Traefik instance that acts as the reverse proxy for all stacks. Users never write Traefik labels by hand — atrisos generates them from each stack's `config.yml`.
+atrisos manages a single shared Traefik instance that routes traffic to all stacks. Users write zero Traefik-related content in their `compose.yml` — domain configuration lives exclusively in `config.yml`, and atrisos generates everything else.
 
 ---
 
@@ -10,30 +10,244 @@ atrisos manages a single shared Traefik instance that acts as the reverse proxy 
 Internet / LAN
       │
       ▼
-  Traefik container           (atrisos_traefik stack, managed by atrisos)
+  Traefik container           (managed by atrisos at ~/.config/atrisos/traefik/)
       │
       │   reads labels from containers on atrisos_net
       │
-   ┌──┴──────────────┐
-   │   atrisos_net   │        (shared Podman network)
-   ├─────────────────┤
-   │  myapp-web      │  ← label: traefik.http.routers.myapp.rule=Host(`myapp.example.com`)
-   │  blog-ghost     │  ← label: traefik.http.routers.blog.rule=Host(`blog.example.com`)
-   │  grafana-web    │  ← label: traefik.http.routers.grafana.rule=Host(`grafana.example.com`)
-   └─────────────────┘
+   ┌──┴──────────────────────────────────────────────────┐
+   │                    atrisos_net                       │
+   ├──────────────────────────────────────────────────────┤
+   │  myapp-web    ← Host(`myapp.example.com`), port 3000 │
+   │  myapp-api    ← Host(`api.example.com`),  port 8080  │
+   │  blog-ghost   ← Host(`blog.example.com`), port 2368  │
+   │  myapp-db     (no domain entry — not on this network)│
+   └──────────────────────────────────────────────────────┘
 ```
 
-1. On `atrisos up <stack>`, atrisos reads `config.yml`, generates Traefik labels, and merges them into the compose run arguments.
-2. Traefik watches containers on the `atrisos_net` network and picks up labels immediately — no Traefik restart needed.
-3. TLS certificates are obtained automatically via ACME (Let's Encrypt) per domain.
+1. User runs `atrisos up myapp`.
+2. atrisos reads `compose.yml` and `config.yml`, builds a merged compose document in memory, and passes it to `podman compose`. The original `compose.yml` is never written to.
+3. Traefik detects new containers on `atrisos_net` via the Podman socket and picks up their labels immediately — no Traefik restart.
+4. ACME certificates are issued per domain on first HTTPS request.
+
+---
+
+## Compose merge pipeline
+
+This is the core mechanism that keeps user compose files clean.
+
+### Input
+
+`compose.yml` (user-authored, no Traefik content):
+```yaml
+services:
+  web:
+    image: myorg/app:latest
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+volumes:
+  db_data:
+```
+
+`config.yml` domains section:
+```yaml
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+    tls: true
+```
+
+### What atrisos generates in memory
+
+atrisos deep-merges the following additions into the parsed compose structure:
+
+```yaml
+services:
+  web:
+    # everything from the original web service, plus:
+    networks:
+      - default          # original default network preserved
+      - atrisos_net      # injected: shared Traefik network
+    labels:
+      # injected: all Traefik routing labels (see Label generation below)
+      traefik.enable: "true"
+      traefik.http.routers.myapp-web.rule: "Host(`myapp.example.com`)"
+      traefik.http.routers.myapp-web.entrypoints: "websecure"
+      traefik.http.routers.myapp-web.tls: "true"
+      traefik.http.routers.myapp-web.tls.certresolver: "letsencrypt"
+      traefik.http.services.myapp-web.loadbalancer.server.port: "3000"
+      traefik.http.routers.myapp-web-http.rule: "Host(`myapp.example.com`)"
+      traefik.http.routers.myapp-web-http.entrypoints: "web"
+      traefik.http.routers.myapp-web-http.middlewares: "https-redirect"
+  db:
+    # untouched — no domain entry for this service
+
+networks:
+  default: {}              # original default network preserved
+  atrisos_net:             # injected: external network declaration
+    external: true
+
+volumes:
+  db_data: {}              # unchanged
+```
+
+The `db` service is untouched because it has no `domains` entry in `config.yml`. It remains on the stack's default internal network only.
+
+### Execution
+
+The merged document is written to a temporary file (e.g. `/tmp/atrisos-myapp-<hash>.yml`) and passed to `podman compose`:
+
+```sh
+podman compose -f /tmp/atrisos-myapp-<hash>.yml --project-name myapp up -d
+```
+
+The temp file is deleted after `podman compose` exits. The user's `compose.yml` is never touched.
+
+To inspect the merged compose document without running it:
+
+```sh
+atrisos render myapp          # print merged compose YAML to stdout
+atrisos render myapp --diff   # show diff between original compose.yml and merged output
+```
+
+---
+
+## Label generation
+
+For each entry in `config.yml`'s `domains` array, atrisos generates a set of Traefik labels. The router name is `<stack-dir-name>-<service-name>` (lowercased, non-alphanumeric chars replaced with `-`).
+
+### HTTPS (tls: true, default)
+
+Input:
+```yaml
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+    tls: true
+```
+
+Generated labels on the `web` container:
+```
+traefik.enable=true
+
+# HTTPS router
+traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web.entrypoints=websecure
+traefik.http.routers.myapp-web.tls=true
+traefik.http.routers.myapp-web.tls.certresolver=letsencrypt
+
+# Service (load balancer target)
+traefik.http.services.myapp-web.loadbalancer.server.port=3000
+
+# HTTP → HTTPS redirect router
+traefik.http.routers.myapp-web-http.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web-http.entrypoints=web
+traefik.http.routers.myapp-web-http.middlewares=https-redirect
+```
+
+The `https-redirect` middleware is defined globally in the managed Traefik config — atrisos creates it once.
+
+### HTTP only (tls: false)
+
+Input:
+```yaml
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+    tls: false
+```
+
+Generated labels:
+```
+traefik.enable=true
+traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
+traefik.http.routers.myapp-web.entrypoints=web
+traefik.http.services.myapp-web.loadbalancer.server.port=3000
+```
+
+### Path prefix routing
+
+Input:
+```yaml
+domains:
+  - service: "api"
+    host: "myapp.example.com"
+    port: 8080
+    path_prefix: "/api"
+```
+
+The rule becomes:
+```
+traefik.http.routers.myapp-api.rule=Host(`myapp.example.com`) && PathPrefix(`/api`)
+```
+
+### Multiple domains on one stack
+
+Each `domains` entry generates its own independent router. Two entries pointing to different services:
+
+```yaml
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+  - service: "api"
+    host: "api.example.com"
+    port: 8080
+```
+
+Produces labels on `web`:
+```
+traefik.http.routers.myapp-web.rule=Host(`myapp.example.com`)
+traefik.http.services.myapp-web.loadbalancer.server.port=3000
+...
+```
+
+And labels on `api`:
+```
+traefik.http.routers.myapp-api.rule=Host(`api.example.com`)
+traefik.http.services.myapp-api.loadbalancer.server.port=8080
+...
+```
+
+### Two domains pointing to the same service
+
+```yaml
+domains:
+  - service: "web"
+    host: "myapp.example.com"
+    port: 3000
+  - service: "web"
+    host: "www.myapp.example.com"
+    port: 3000
+```
+
+Generates two routers (`myapp-web-0`, `myapp-web-1`) both pointing to the same service backend. The service entry is deduplicated.
+
+---
+
+## Network: atrisos_net
+
+atrisos creates and owns a Podman network named `atrisos_net` (configurable in global config):
+
+```sh
+podman network create atrisos_net
+```
+
+Only services with at least one entry in `config.yml`'s `domains` array are attached to `atrisos_net`. Services with no domain entry (databases, caches, workers) run only on the stack's internal default network, which is the correct isolation posture.
 
 ---
 
 ## Managed Traefik stack
 
-Traefik itself runs as a Compose stack stored at `~/.config/atrisos/traefik/`. atrisos manages this stack internally — users do not edit it directly (though advanced users can inspect it).
+Traefik runs as a Compose stack at `~/.config/atrisos/traefik/`. atrisos manages it — do not edit these files directly.
 
-### Generated compose.yml (internal)
+### Internal compose.yml
 
 ```yaml
 services:
@@ -55,7 +269,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - /run/user/1000/podman/podman.sock:/var/run/docker.sock:ro
+      - ${PODMAN_SOCKET}:/var/run/docker.sock:ro
       - letsencrypt:/letsencrypt
     networks:
       - atrisos_net
@@ -68,105 +282,31 @@ volumes:
   letsencrypt:
 ```
 
-Notes:
-- Uses the Podman socket (rootless) at `/run/user/<UID>/podman/podman.sock` — path computed at runtime.
-- On macOS with `podman machine`, the socket path differs and is computed from `podman machine inspect`.
+`PODMAN_SOCKET` is computed at runtime:
+- **Linux**: `/run/user/<UID>/podman/podman.sock`
+- **macOS**: path from `podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}'`
 
 ---
 
-## Label generation
+## TLS / ACME
 
-For a stack with this `config.yml`:
+- Certificates are issued via the HTTP-01 challenge — port 80 must be reachable from the internet.
+- Certs are stored in the `atrisos_letsencrypt` Podman volume and persist across Traefik restarts.
+- ACME email is read from the global config (`traefik.acme_email`) and can be overridden per-domain entry with a `acme_email` field.
 
-```yaml
-name: "My App"
-domain:
-  host: "myapp.example.com"
-  service: "web"
-  port: 3000
-  tls: true
-```
-
-atrisos generates and injects these labels on the `web` service at runtime:
-
-```
-traefik.enable=true
-traefik.http.routers.myapp.rule=Host(`myapp.example.com`)
-traefik.http.routers.myapp.entrypoints=websecure
-traefik.http.routers.myapp.tls=true
-traefik.http.routers.myapp.tls.certresolver=letsencrypt
-traefik.http.services.myapp.loadbalancer.server.port=3000
-traefik.http.routers.myapp-redirect.rule=Host(`myapp.example.com`)
-traefik.http.routers.myapp-redirect.entrypoints=web
-traefik.http.routers.myapp-redirect.middlewares=redirect-to-https
-traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
-```
-
-The router name is derived from the stack directory name (sanitized: lowercased, non-alphanumeric chars replaced with `-`).
-
-### Path prefix routing
-
-If `path_prefix` is set (e.g. `/api`), the rule becomes:
-```
-Host(`myapp.example.com`) && PathPrefix(`/api`)
-```
-
-### Custom middlewares
-
-If `domain.middlewares` lists middleware names, they are appended to the router's middleware chain. The middlewares must be defined in Traefik's static or dynamic config — atrisos does not create them.
-
----
-
-## Network: atrisos_net
-
-atrisos creates a Podman network named `atrisos_net` on first use:
-
-```sh
-podman network create atrisos_net
-```
-
-All stacks that use Traefik routing must join this network. atrisos automatically adds the network to the compose file at runtime if `domain.host` is set:
-
-```yaml
-# injected at runtime into every routed stack
-networks:
-  default:
-    name: atrisos_net
-    external: true
-```
-
-Stacks without a `domain.host` in `config.yml` are not attached to `atrisos_net` and run in isolation.
-
----
-
-## TLS / ACME (Let's Encrypt)
-
-- Certificates are obtained via HTTP-01 challenge — port 80 must be reachable from the internet.
-- Certificates are stored in a Podman volume (`atrisos_letsencrypt`) and persist across Traefik restarts.
-- The ACME email is set globally in `~/.config/atrisos/config.yml` and can be overridden per stack in `config.yml`.
-
-### Rate limits
-
-Let's Encrypt enforces rate limits (5 duplicate cert requests per week). During development:
-- Use a subdomain you control rather than a production domain.
-- Or temporarily set `tls: false` in `config.yml` to skip ACME.
-
-### Self-signed / local mode (future)
-
-A `local` mode using Traefik's built-in self-signed certs is planned for LAN/homelab use where public ACME is not available.
+**Rate limits**: Let's Encrypt allows 5 duplicate cert requests per week per domain. Use a staging domain or set `tls: false` during development.
 
 ---
 
 ## Traefik dashboard
 
-The Traefik dashboard is enabled but not exposed via a domain by default. To access it:
+Disabled externally by default. To access it locally:
 
 ```sh
-atrisos traefik dashboard
-# opens http://localhost:8080/dashboard/ via SSH tunnel or direct if local
+atrisos traefik dashboard   # prints URL: http://localhost:8080/dashboard/
 ```
 
-To expose it via a domain, add to `~/.config/atrisos/config.yml`:
+To expose it via a domain, set in global config:
 
 ```yaml
 traefik:
@@ -180,12 +320,12 @@ traefik:
 ## Traefik commands
 
 ```sh
-atrisos traefik up       # start managed Traefik (done automatically on first `atrisos up`)
-atrisos traefik down     # stop Traefik
-atrisos traefik restart  # restart Traefik
-atrisos traefik status   # show Traefik container status
-atrisos traefik logs     # tail Traefik logs
-atrisos traefik dashboard  # open dashboard
+atrisos traefik up         # start (runs automatically on first `atrisos up`)
+atrisos traefik down       # stop
+atrisos traefik restart    # restart
+atrisos traefik status     # container status + active router summary
+atrisos traefik logs       # tail Traefik logs
+atrisos traefik dashboard  # print dashboard URL
 ```
 
 ---
@@ -194,8 +334,9 @@ atrisos traefik dashboard  # open dashboard
 
 | Symptom | Likely cause |
 |---------|-------------|
-| `502 Bad Gateway` | App container not running or wrong port in `config.yml` |
-| `404 page not found` (Traefik 404) | No matching router — check `domain.host` matches the request hostname exactly |
-| Certificate error in browser | ACME challenge failed — check port 80 is open and domain resolves to this server |
-| Labels not picked up | Container not on `atrisos_net` — check atrisos injected the network correctly with `podman inspect <container>` |
-| `podman.sock not found` | Podman socket path wrong — run `podman info --format '{{.Host.RemoteSocket.Path}}'` and report as a bug |
+| `502 Bad Gateway` | App container not running or wrong `port` in `config.yml` |
+| `404 page not found` (Traefik default) | Router rule mismatch — check `host` exactly matches the request hostname |
+| Certificate error in browser | ACME HTTP-01 failed — check port 80 is reachable and the domain resolves to this host |
+| Labels not picked up | Service not attached to `atrisos_net` — run `atrisos render myapp` to verify the merged compose includes the network |
+| `podman.sock not found` | Socket path detection failed — run `podman info --format '{{.Host.RemoteSocket.Path}}'` and file a bug |
+| Multiple domains, wrong service gets traffic | Check router names with `atrisos traefik status` — name collision between stacks is possible if two stacks share a service name; use unique stack directory names |

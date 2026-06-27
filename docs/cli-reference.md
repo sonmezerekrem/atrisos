@@ -62,6 +62,15 @@ atrisos update myapp --pull   # explicit pull before recreate (default behavior)
 atrisos update myapp --no-pull  # recreate without pulling (e.g. to apply .env changes)
 ```
 
+### `atrisos render <stack>`
+
+Print the merged compose document that atrisos would pass to `podman compose` — the original `compose.yml` with Traefik labels and `atrisos_net` injected. Useful for debugging routing configuration without actually starting anything.
+
+```sh
+atrisos render myapp           # print merged compose YAML to stdout
+atrisos render myapp --diff    # show diff vs original compose.yml
+```
+
 ### `atrisos watch <stack>`
 
 Start a stack in watch mode: monitors the stack directory for changes to `compose.yml`, `.env`, and `config.yml`, and automatically re-applies changes. Stays in foreground; Ctrl+C stops watching (stack keeps running).
