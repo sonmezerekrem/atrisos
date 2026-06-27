@@ -34,6 +34,7 @@ atrisos up myapp
 atrisos up myapp --pull    # pull latest images before starting
 atrisos up myapp --build   # build images from Dockerfile before starting
 atrisos up --all           # start all discovered stacks sequentially
+atrisos up --tag production  # start all stacks tagged "production"
 ```
 
 ### `atrisos down <stack>`
@@ -44,6 +45,7 @@ Stop a stack and remove its containers. Volumes are preserved. Removes any insta
 atrisos down myapp
 atrisos down myapp --volumes  # also remove named volumes (destructive)
 atrisos down --all            # stop all discovered stacks sequentially
+atrisos down --tag production # stop all stacks tagged "production"
 ```
 
 ### `atrisos restart <stack>`
@@ -63,6 +65,7 @@ atrisos update myapp
 atrisos update myapp --pull     # explicit pull before recreate (default)
 atrisos update myapp --no-pull  # recreate without pulling (e.g. to apply .env changes)
 atrisos update --all            # update all discovered stacks sequentially
+atrisos update --tag production # update all stacks tagged "production"
 ```
 
 ### `atrisos render <stack>`
@@ -124,6 +127,60 @@ atrisos backup myapp --dry-run   # show what would be backed up without running
 ```
 
 Scheduled backups are triggered automatically by systemd timers (Linux) or launchd plists (macOS) installed when the stack is started. This command is for on-demand runs.
+
+### `atrisos exec <stack> <service> -- <command>`
+
+Run a one-off command inside a running container. Wraps `podman exec`.
+
+```sh
+atrisos exec myapp web -- ls /app
+atrisos exec myapp db -- psql -U postgres
+```
+
+### `atrisos shell <stack> <service>`
+
+Open an interactive shell in a running container. Tries `/bin/bash` first, falls back to `/bin/sh`.
+
+```sh
+atrisos shell myapp web
+atrisos shell myapp db
+```
+
+### `atrisos validate <stack>`
+
+Dry-run validation of a stack's files — checks config.yml schema, compose.yml syntax, domain-to-service cross-references, and presence of `.env`. All errors reported at once, nothing is started.
+
+```sh
+atrisos validate myapp
+atrisos validate --all    # validate all discovered stacks
+```
+
+### `atrisos outdated [stack]`
+
+Check whether newer image versions are available in the registry for images used by a stack.
+
+```sh
+atrisos outdated          # check all stacks
+atrisos outdated myapp    # check a specific stack
+```
+
+### `atrisos export <stack>`
+
+Package a stack into a portable `.tar.gz` containing `compose.yml`, `config.yml`, `compose.override.yml` (if present), and `.env.example`. The `.env` file is excluded to avoid exporting secrets.
+
+```sh
+atrisos export myapp                  # creates myapp.tar.gz in current dir
+atrisos export myapp --output ~/backups/myapp.tar.gz
+```
+
+### `atrisos import <file>`
+
+Extract a stack archive into the stacks root directory and prompt the user to create `.env` from `.env.example`.
+
+```sh
+atrisos import myapp.tar.gz
+atrisos import myapp.tar.gz --dir /opt/stacks   # extract to a specific location
+```
 
 ---
 
@@ -202,7 +259,9 @@ atrisos tui
 | `s` | Start selected stack |
 | `x` | Stop selected stack |
 | `l` | Open log viewer for selected stack |
+| `e` | Open shell in the focused service (suspends TUI, returns on exit) |
 | `i` | Show stack info / config.yml summary |
+| `o` | Show `atrisos outdated` results for selected stack |
 | `t` | Show Traefik status panel |
 | `/` | Filter stacks by name or tag |
 | `?` | Show help |
@@ -267,10 +326,19 @@ atrisos traefik dashboard
 
 ### `atrisos version`
 
-Print version, build info, and detected platform.
+Print version, build info, detected platform, and latest available version (checked in background, cached 24 hours).
 
 ```sh
 atrisos version
+```
+
+### `atrisos self-update`
+
+Download the latest atrisos release from GitHub, verify its checksum, and replace the running binary in place.
+
+```sh
+atrisos self-update
+atrisos self-update --version v0.5.0   # pin to a specific version
 ```
 
 ### `atrisos completion <shell>`

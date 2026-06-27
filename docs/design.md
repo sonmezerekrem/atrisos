@@ -93,7 +93,7 @@ Both are installed on `atrisos up` when `auto_start: true` and removed on `atris
 
 ### Bulk operations
 
-`atrisos up --all`, `atrisos down --all`, and `atrisos update --all` operate on all discovered stacks sequentially in discovery order (root dir stacks first, then registered extra paths, both alphabetically). A single stack failure prints an error and continues to the next stack rather than aborting the whole operation.
+`atrisos up --all`, `atrisos down --all`, and `atrisos update --all` operate on all discovered stacks sequentially in discovery order (root dir stacks first, then registered extra paths, both alphabetically). A single stack failure prints an error and continues to the next stack rather than aborting the whole operation. All three also accept `--tag <tag>` to operate only on stacks whose `config.yml` includes that tag.
 
 ### ACME staging
 
@@ -104,6 +104,69 @@ The `tls` field in each `domains` entry accepts three values:
 - `false` — HTTP only, no certificate
 
 Traefik uses a separate certificate resolver (`letsencrypt-staging`) for staging domains, configured in the managed Traefik compose file alongside the production resolver.
+
+### Webhook notifications
+
+Stacks with a `notify.webhook` URL in `config.yml` POST a JSON payload to that URL on these events:
+
+- Unexpected container exit (container stops without `atrisos down`)
+- Backup failure
+- TLS certificate expiry within 7 days
+
+Payload format:
+```json
+{
+  "event": "container_exit",
+  "stack": "myapp",
+  "service": "web",
+  "timestamp": "2026-06-27T14:00:00Z",
+  "message": "Container myapp-web exited with code 1"
+}
+```
+
+Webhook URL is per-stack only (no global fallback). Stacks without a `notify` block send no notifications. Compatible with Slack, Discord, ntfy, and any service that accepts a POST with a JSON body.
+
+### Container exec and shell
+
+`atrisos exec <stack> <service> -- <command>` and `atrisos shell <stack> <service>` wrap `podman exec`. In the TUI, pressing `e` on a selected service suspends the TUI and opens a shell directly in the terminal, then returns to the TUI on exit.
+
+### SELinux auto-detection
+
+On Linux, atrisos runs `getenforce` at startup. If SELinux is enforcing, it appends `:z` to all bind-mount volume entries in the merged compose document (named volumes are unaffected — SELinux relabelling only applies to bind mounts). Named volumes managed by Podman do not need this label.
+
+### Compose override files
+
+If a stack directory contains `compose.override.yml`, atrisos deep-merges it with `compose.yml` before applying Traefik label injection. This follows the same merge semantics as `docker compose` (service keys in the override layer replace or extend the base). No config needed — the file's presence is the signal.
+
+### Port conflict detection
+
+Before starting Traefik, atrisos checks whether the configured HTTP and HTTPS ports (default 80 and 443) are already bound using a TCP dial attempt. If either port is taken, atrisos exits immediately with a message identifying the conflicting process (via `lsof -i :<port>` on macOS/Linux).
+
+### Container health checks in TUI
+
+The TUI reads Podman health check state for each container (`podman ps --format json` includes `Health.Status`). Three states are surfaced:
+
+- `healthy` — health check passing
+- `starting` — container running but health check not yet passed
+- `unhealthy` — health check failing
+
+The stack list uses a distinct indicator for stacks with unhealthy containers (`⚠` instead of `●`). The detail panel shows per-service health status alongside running/stopped.
+
+### Image update awareness
+
+`atrisos outdated` queries the registry for each image used across all stacks and compares the remote digest against the locally pulled digest. Services with available updates are listed. The TUI runs this check in a background goroutine on startup and shows a small `↑` badge next to stack names with available updates.
+
+### Config validation
+
+`atrisos validate <stack>` performs a dry-run check: config.yml schema, compose.yml syntax (via `podman compose config`), cross-references between domains service names and compose services, presence of `.env`. All errors are collected and reported at once rather than failing on the first one.
+
+### Self-update
+
+`atrisos self-update` fetches the latest release from GitHub, verifies the checksum, and replaces the running binary in place. `atrisos version` shows both the current version and the latest available (checked in the background, cached for 24 hours).
+
+### Stack export and import
+
+`atrisos export <stack>` creates a `.tar.gz` containing `compose.yml`, `config.yml`, `compose.override.yml` (if present), and `.env.example`. The `.env` file is intentionally excluded to avoid exporting secrets. `atrisos import <file.tar.gz>` extracts into the stacks root directory and prompts the user to create a `.env` from `.env.example`.
 
 ### Stack init templates
 
@@ -126,6 +189,11 @@ atrisos/
 │   ├── list.go
 │   ├── init.go
 │   ├── backup.go
+│   ├── exec.go
+│   ├── validate.go
+│   ├── outdated.go
+│   ├── export.go
+│   ├── selfupdate.go
 │   └── traefik.go
 ├── internal/
 │   ├── config/             # global config loading
@@ -137,6 +205,10 @@ atrisos/
 │   ├── backup/             # backup scheduling and restic invocation
 │   ├── restic/             # bundled restic binary management (download, verify, exec)
 │   ├── scheduler/          # systemd timer / launchd plist generation and management
+│   ├── notify/             # webhook POST on events
+│   ├── outdated/           # registry digest comparison for image update checks
+│   ├── selfupdate/         # GitHub release fetch, checksum verify, binary replace
+│   ├── health/             # Podman health check state polling
 │   └── templates/          # GitHub template fetching and local cache management
 ├── tui/                    # bubbletea TUI components
 │   ├── app.go              # root model
@@ -186,17 +258,18 @@ atrisos/
 │ STACKS          │ myapp                                  │
 │                 │ ─────────────────────────────────────  │
 │ ▶ myapp    ●   │ Status:   running (3 containers)       │
-│   postgres  ●   │ Domain:   https://myapp.example.com   │
+│   postgres  ● ↑ │ Domain:   https://myapp.example.com   │
 │   redis     ●   │ Updated:  2 hours ago                  │
-│   grafana   ○   │                                        │
-│             │   │ Containers                             │
-│             │   │   web     running   Up 2h              │
-│             │   │   worker  running   Up 2h              │
-│             │   │   db      running   Up 2h              │
-│             │   │                                        │
-│             │   │ [u] update  [r] restart  [l] logs      │
-│             │   │ [↑↓] navigate  [enter] select  [q] quit│
-└─────────────┴───────────────────────────────────────────┘
+│   grafana   ⚠   │                                        │
+│                 │ Containers                             │
+│                 │   web     ● running  healthy   Up 2h   │
+│                 │   worker  ● running  healthy   Up 2h   │
+│                 │   db      ● running  starting  Up 10s  │
+│                 │                                        │
+│                 │ [u]update [r]restart [l]logs [e]shell  │
+│                 │ [↑↓]navigate  [/]filter  [?]help  [q]quit│
+└─────────────────┴───────────────────────────────────────┘
 ```
 
-Status indicators: `●` running, `○` stopped, `◑` partial (some containers down), `↺` updating.
+Stack list indicators: `●` running, `○` stopped, `◑` partial, `↺` updating, `⚠` unhealthy container, `↑` image update available.
+Detail panel health states: `healthy`, `starting`, `unhealthy` (sourced from Podman health check).

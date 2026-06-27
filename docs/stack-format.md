@@ -6,12 +6,16 @@ Each application is a self-contained directory called a **stack**. atrisos disco
 
 ```
 myapp/
-├── compose.yml        # Podman/Docker Compose file (required)
-├── .env               # Environment variables (required, may be empty)
-└── config.yml         # atrisos configuration (required)
+├── compose.yml          # Podman/Docker Compose file (required)
+├── compose.override.yml # Optional: merged on top of compose.yml automatically
+├── .env                 # Environment variables (required, may be empty)
+├── .env.example         # Committed placeholder values (recommended)
+└── config.yml           # atrisos configuration (required)
 ```
 
 `docker-compose.yml` is also accepted as an alias for `compose.yml`. If both exist, `compose.yml` takes precedence.
+
+If `compose.override.yml` exists, atrisos deep-merges it with `compose.yml` before applying Traefik label injection — same semantics as `docker compose` override files. No config is needed; presence of the file is the signal.
 
 ---
 
@@ -114,6 +118,11 @@ backup:
   destination: "~/backups/myapp"
   volumes:
     - db_data
+
+# ── Notifications ────────────────────────────────────────────
+notify:
+  webhook: "https://ntfy.sh/myapp-alerts"   # POST JSON on: unexpected exit,
+                                             # backup failure, cert expiry warning
 ```
 
 ### domains array
@@ -156,6 +165,7 @@ atrisos validates `config.yml` on load and reports errors before attempting to s
 | `backup.schedule` | Valid 5-field cron expression |
 | `backup.destination` | Valid local path or `s3://` URI |
 | `meta` | All values must be strings |
+| `notify.webhook` | Must be a valid HTTP/HTTPS URL |
 
 ---
 
