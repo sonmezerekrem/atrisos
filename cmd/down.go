@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/sonmezerekrem/atrisos/internal/compose"
+	"github.com/sonmezerekrem/atrisos/internal/scheduler"
 	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/spf13/cobra"
 )
@@ -36,6 +37,14 @@ var downCmd = &cobra.Command{
 				continue
 			}
 			printSuccess(fmt.Sprintf("%s is down", s.Name))
+
+			// Remove scheduler units after stopping.
+			if err := scheduler.RemoveAutoStart(s); err != nil {
+				printWarn(fmt.Sprintf("removing auto-start scheduler: %v", err))
+			}
+			if err := scheduler.RemoveBackupTimer(s); err != nil {
+				printWarn(fmt.Sprintf("removing backup scheduler: %v", err))
+			}
 		}
 		return lastErr
 	},

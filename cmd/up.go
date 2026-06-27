@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/sonmezerekrem/atrisos/internal/compose"
+	"github.com/sonmezerekrem/atrisos/internal/scheduler"
 	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/sonmezerekrem/atrisos/internal/traefik"
 	"github.com/spf13/cobra"
@@ -39,6 +40,8 @@ var upCmd = &cobra.Command{
 			os.Exit(5)
 		}
 
+		atrisosExe, _ := os.Executable()
+
 		var lastErr error
 		for _, s := range stacks {
 			if err := upOne(s); err != nil {
@@ -47,6 +50,18 @@ var upCmd = &cobra.Command{
 				continue
 			}
 			printSuccess(fmt.Sprintf("%s is up", s.Name))
+
+			// Wire scheduler units after successful start.
+			if s.Config.AutoStart {
+				if err := scheduler.InstallAutoStart(s, atrisosExe); err != nil {
+					printWarn(fmt.Sprintf("auto-start scheduler: %v", err))
+				}
+			}
+			if s.Config.Backup.Enabled {
+				if err := scheduler.InstallBackupTimer(s, atrisosExe); err != nil {
+					printWarn(fmt.Sprintf("backup scheduler: %v", err))
+				}
+			}
 		}
 		return lastErr
 	},
