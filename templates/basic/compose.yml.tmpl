@@ -1,0 +1,10 @@
+services:
+  web:
+    image: {{.image}}
+{{- if .domain}}
+    expose:
+      - "{{.port}}"
+{{- else}}
+    ports:
+      - "{{.port}}:{{.port}}"
+{{- end}}

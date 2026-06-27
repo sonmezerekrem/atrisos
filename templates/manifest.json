@@ -1,0 +1,15 @@
+{
+  "version": "2026-06-28T00:00:00Z",
+  "templates": [
+    {
+      "name": "basic",
+      "display": "Basic",
+      "description": "Single service with optional domain routing"
+    },
+    {
+      "name": "webapp-postgres",
+      "display": "Web App + PostgreSQL",
+      "description": "Web service backed by PostgreSQL with backup enabled"
+    }
+  ]
+}

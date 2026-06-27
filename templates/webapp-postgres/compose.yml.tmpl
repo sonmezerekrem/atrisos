@@ -1,0 +1,26 @@
+services:
+  web:
+    image: {{.image}}
+{{- if .domain}}
+    expose:
+      - "{{.port}}"
+{{- else}}
+    ports:
+      - "{{.port}}:{{.port}}"
+{{- end}}
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16-alpine
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+
+volumes:
+  db_data:

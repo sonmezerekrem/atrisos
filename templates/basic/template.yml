@@ -1,0 +1,16 @@
+name: basic
+display: Basic
+description: Single service with optional domain routing
+prompts:
+  - name: image
+    label: "Docker image (e.g. nginx:alpine)"
+    type: string
+    required: true
+  - name: port
+    label: "Container port the service listens on"
+    type: int
+    default: "80"
+  - name: domain
+    label: "Domain hostname (leave blank to skip Traefik routing)"
+    type: string
+    required: false
