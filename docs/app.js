@@ -147,24 +147,31 @@
       return String(text).toLowerCase().replace(/[^\w\s-]/g, "").trim().replace(/\s+/g, "-");
     }
 
+    _decodeEntities(s) {
+      if (!s || s.indexOf("&") === -1) return s;
+      const ta = document.createElement("textarea");
+      ta.innerHTML = s;
+      return ta.value;
+    }
+
     _inline(text) {
       if (!text) return "";
-      return String(text)
+      return this._decodeEntities(String(text)
         .replace(/\*\*(.+?)\*\*/g, "$1")
         .replace(/\*(.+?)\*/g, "$1")
         .replace(/`(.+?)`/g, "$1")
-        .replace(/\[(.+?)\]\(.+?\)/g, "$1");
+        .replace(/\[(.+?)\]\(.+?\)/g, "$1"));
     }
 
     _renderInline(tokens) {
       if (!tokens || !tokens.length) return "";
       return tokens.map((t, i) => {
-        if (t.type === "text") return t.raw || t.text || "";
+        if (t.type === "text") return this._decodeEntities(t.raw || t.text || "");
         if (t.type === "strong") return E("strong", { key: i }, this._renderInline(t.tokens));
         if (t.type === "em") return E("em", { key: i }, this._renderInline(t.tokens));
-        if (t.type === "codespan") return E("code", { key: i, style: { fontFamily: MONO, fontSize: "0.9em", background: "var(--pill)", padding: "1px 5px", borderRadius: 4 } }, t.text);
+        if (t.type === "codespan") return E("code", { key: i, style: { fontFamily: MONO, fontSize: "0.9em", background: "var(--pill)", padding: "1px 5px", borderRadius: 4 } }, this._decodeEntities(t.text));
         if (t.type === "link") return E("a", { key: i, href: t.href, style: { color: "var(--accent)" } }, this._renderInline(t.tokens));
-        return t.raw || t.text || "";
+        return this._decodeEntities(t.raw || t.text || "");
       });
     }
 
