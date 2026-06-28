@@ -1,7 +1,7 @@
 {
   "site": {
     "brand": "Atrisos",
-    "accent": "orange",
+    "accent": "blue",
     "defaultTheme": "light",
     "github": "https://github.com/sonmezerekrem/atrisos",
     "basePath": "/atrisos"

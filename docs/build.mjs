@@ -21,7 +21,7 @@ const OUT_FILE = path.join(__dirname, "nav.json");
 
 const SITE = {
   brand: "Atrisos",
-  accent: "orange",
+  accent: "blue",
   defaultTheme: "light",
   github: "https://github.com/sonmezerekrem/atrisos",
   basePath: "/atrisos",

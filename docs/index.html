@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Atrisos Docs</title>
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./favicon.svg">
 <script src="./design-template/support.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
 </head>
@@ -43,6 +45,7 @@
   .dfy-scroll::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:8px;}
   .dfy-scroll::-webkit-scrollbar-track{background:transparent;}
   .hgi-stroke{display:inline-flex;align-items:center;justify-content:center;vertical-align:middle;line-height:1;}
+  .brand-mark{display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 </style>
 </helmet>
 <div data-theme="{{ theme }}" data-accent="{{ accent }}" style="min-height:100vh;background:var(--panel);color:var(--text);">
@@ -50,7 +53,7 @@
 
     <header style="position:sticky;top:0;z-index:40;background:var(--panel);display:flex;align-items:center;gap:24px;padding:16px 40px;border-bottom:1px solid var(--border);">
       <a onClick="{{ onHome }}" style="display:flex;align-items:center;gap:11px;flex-shrink:0;cursor:pointer;text-decoration:none;color:var(--text);">
-        <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;">{{ brandIcon }}</span>
+        <span class="brand-mark">{{ brandIcon }}</span>
         <span style="font-weight:700;font-size:20px;letter-spacing:-.02em;">{{ brand }}</span>
       </a>
       <div style="flex:1;display:flex;justify-content:center;position:relative;">
@@ -138,7 +141,7 @@
   </div>
 </div>
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;orange&quot;,&quot;blue&quot;,&quot;violet&quot;,&quot;green&quot;],&quot;default&quot;:&quot;orange&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Atrisos&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;}}">
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;orange&quot;,&quot;blue&quot;,&quot;violet&quot;,&quot;green&quot;],&quot;default&quot;:&quot;blue&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Atrisos&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;}}">
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 
 class Component extends DCLogic {
@@ -405,6 +408,18 @@ class Component extends DCLogic {
     if (act !== this.state.active) this.setState({ active: act });
   }
 
+  brandLogo(size){
+    size = size || 30;
+    const E = React.createElement;
+    return E('img', {
+      src: './assets/logo.svg',
+      alt: '',
+      width: size,
+      height: size,
+      style: { display: 'block' },
+    });
+  }
+
   icon(name, size){
     size = size || 18;
     const E = React.createElement;
@@ -467,7 +482,8 @@ class Component extends DCLogic {
   }
 
   renderVals(){
-    const accent = this.props.accent || 'orange';
+    const site = (this.state.nav && this.state.nav.site) || {};
+    const accent = this.props.accent || site.accent || 'blue';
     const cur = this.state.current || 'getting-started';
     const data = this._content(cur);
     const found = this._find(cur);
@@ -568,12 +584,10 @@ class Component extends DCLogic {
       results = results.slice(0, 8);
     }
 
-    const site = (this.state.nav && this.state.nav.site) || {};
-
     return {
       theme: this.state.theme, accent,
       brand: this.props.brandName || site.brand || 'Atrisos',
-      brandIcon: this.icon('book', 17),
+      brandIcon: this.brandLogo(30),
       searchIcon: this.icon('search', 18),
       themeIcon: this.icon(this.state.theme === 'dark' ? 'sun' : 'moon', 18),
       chevIcon: this.icon('chev', 15),
