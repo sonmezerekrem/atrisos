@@ -24,6 +24,11 @@ var selfUpdateCmd = &cobra.Command{
 			printAction(fmt.Sprintf("latest version is %s", target))
 		}
 
+		if selfupdate.SameVersion(target, Version) {
+			fmt.Printf("✓ already on %s\n", target)
+			return nil
+		}
+
 		if err := selfupdate.Update(target); err != nil {
 			return fmt.Errorf("self-update: %w", err)
 		}

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 )
@@ -15,10 +16,10 @@ const githubAPI = "https://api.github.com/repos/sonmezerekrem/atrisos/releases/l
 const downloadBase = "https://github.com/sonmezerekrem/atrisos/releases/download"
 
 var (
-	cachedVersion   string
-	cachedAt        time.Time
-	cacheMu         sync.Mutex
-	cacheTTL        = 24 * time.Hour
+	cachedVersion string
+	cachedAt      time.Time
+	cacheMu       sync.Mutex
+	cacheTTL      = 24 * time.Hour
 )
 
 // LatestVersion fetches the latest atrisos release tag from GitHub API.
@@ -58,6 +59,16 @@ func LatestVersion() string {
 	cachedVersion = release.TagName
 	cachedAt = time.Now()
 	return cachedVersion
+}
+
+// SameVersion reports whether two version strings refer to the same release,
+// ignoring an optional leading "v" (e.g. "0.3.0" vs "v0.3.0").
+func SameVersion(a, b string) bool {
+	return normalizeVersion(a) == normalizeVersion(b)
+}
+
+func normalizeVersion(v string) string {
+	return strings.TrimPrefix(strings.TrimSpace(v), "v")
 }
 
 // Update downloads the release binary for targetVersion, replaces the current

@@ -13,8 +13,8 @@ import (
 var Version = "dev"
 
 var versionCmd = &cobra.Command{
-	Use:   "version",
-	Short: "Print version information",
+	Use:         "version",
+	Short:       "Print version information",
 	Annotations: map[string]string{"skipPreRun": "true"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Printf("Atrisos %s\n", Version)
@@ -22,10 +22,10 @@ var versionCmd = &cobra.Command{
 		fmt.Printf("Go:      %s\n", runtime.Version())
 		latest := selfupdate.LatestVersion()
 		if latest != "" && Version != "dev" {
-			if latest != Version {
-				fmt.Printf("Latest:  %s  → run `atrisos self-update` to upgrade\n", latest)
-			} else {
+			if selfupdate.SameVersion(latest, Version) {
 				fmt.Printf("Latest:  %s (up to date)\n", latest)
+			} else {
+				fmt.Printf("Latest:  %s  → run `atrisos self-update` to upgrade\n", latest)
 			}
 		}
 	},
