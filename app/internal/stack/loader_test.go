@@ -3,6 +3,7 @@ package stack
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -152,6 +153,19 @@ func TestLoadStack(t *testing.T) {
 		}
 		if notAStack.Dir == "" {
 			t.Error("ErrNotAStack.Dir should not be empty")
+		}
+		if got := notAStack.Error(); got == "" || !strings.Contains(got, dir) {
+			t.Errorf("Error() = %q, want message containing stack path", got)
+		}
+	})
+
+	t.Run("invalid config.yml returns parse error", func(t *testing.T) {
+		dir := t.TempDir()
+		writeFile(t, filepath.Join(dir, "compose.yml"), "services:\n  web:\n    image: nginx\n")
+		writeFile(t, filepath.Join(dir, "config.yml"), "name: [\n")
+
+		if _, err := LoadStack(dir); err == nil {
+			t.Fatal("expected yaml parse error")
 		}
 	})
 }

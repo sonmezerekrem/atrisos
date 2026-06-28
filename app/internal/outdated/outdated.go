@@ -103,23 +103,24 @@ func remoteDigest(image string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("podman manifest inspect %s: %w", image, err)
 	}
-	// The manifest output is JSON; look for the first "digest" field.
-	raw := string(out)
+	return parseManifestDigest(string(out))
+}
+
+func parseManifestDigest(raw string) (string, error) {
 	const needle = `"digest"`
 	idx := strings.Index(raw, needle)
 	if idx < 0 {
-		return "", fmt.Errorf("no digest in manifest for %s", image)
+		return "", fmt.Errorf("no digest in manifest")
 	}
 	rest := raw[idx+len(needle):]
-	// rest looks like: : "sha256:abc..."
 	colonIdx := strings.Index(rest, `"`)
 	if colonIdx < 0 {
-		return "", fmt.Errorf("malformed digest in manifest for %s", image)
+		return "", fmt.Errorf("malformed digest in manifest")
 	}
 	rest = rest[colonIdx+1:]
 	endIdx := strings.Index(rest, `"`)
 	if endIdx < 0 {
-		return "", fmt.Errorf("malformed digest in manifest for %s", image)
+		return "", fmt.Errorf("malformed digest in manifest")
 	}
 	return shortDigest(rest[:endIdx]), nil
 }

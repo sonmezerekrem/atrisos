@@ -110,8 +110,8 @@ func discoverVolumes(projectName string) ([]string, error) {
 	var entries []struct {
 		Name string `json:"Name"`
 	}
-	if err := json.Unmarshal(out, &entries); err != nil {
-		return nil, fmt.Errorf("parsing volume list: %w", err)
+	if err := parseVolumeListJSON(string(out), &entries); err != nil {
+		return nil, err
 	}
 
 	names := make([]string, 0, len(entries))
@@ -119,6 +119,15 @@ func discoverVolumes(projectName string) ([]string, error) {
 		names = append(names, e.Name)
 	}
 	return names, nil
+}
+
+func parseVolumeListJSON(raw string, entries *[]struct {
+	Name string `json:"Name"`
+}) error {
+	if err := json.Unmarshal([]byte(raw), entries); err != nil {
+		return fmt.Errorf("parsing volume list: %w", err)
+	}
+	return nil
 }
 
 // expandDest expands ~ in a destination path and handles S3 URLs unchanged.
