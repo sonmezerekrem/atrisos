@@ -1,5 +1,6 @@
 ---
 title: Design
+section: overview
 group: Core Concepts
 order: 1
 icon: grid
@@ -178,7 +179,7 @@ The stack list uses a distinct indicator for stacks with unhealthy containers (`
 
 ### Stack init templates
 
-`atrisos init` fetches template files from the `templates/` directory in the atrisos GitHub repository (`main` branch) at runtime. Templates are cached locally in `~/.config/atrisos/templates-cache/` after the first download so subsequent `atrisos init` calls work offline. atrisos checks for a newer cache version (by comparing a manifest file) only when online. See [templates.md](templates.md) for the template format and available templates.
+`atrisos init` fetches template files from the `templates/` directory in the atrisos GitHub repository (`main` branch) at runtime. Templates are cached locally in `~/.config/atrisos/templates-cache/` after the first download so subsequent `atrisos init` calls work offline. atrisos checks for a newer cache version (by comparing a manifest file) only when online. See [templates/overview.md](templates/overview.md) for the template format and available templates.
 
 ## Go project structure
 

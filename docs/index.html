@@ -80,8 +80,8 @@
 
     <nav style="display:flex;align-items:center;justify-content:space-between;padding:9px 40px;border-bottom:1px solid var(--border);">
       <div style="display:flex;align-items:center;gap:4px;">
-        <sc-for list="{{ primaryNav }}" as="p" hint-placeholder-count="7">
-          <a style="{{ p.style }}" style-hover="color:var(--text)">{{ p.label }}</a>
+        <sc-for list="{{ primaryNav }}" as="p" hint-placeholder-count="5">
+          <a onClick="{{ p.onClick }}" style="{{ p.style }}" style-hover="color:var(--text)">{{ p.label }}</a>
         </sc-for>
       </div>
       <div style="display:flex;align-items:center;gap:18px;color:var(--faint);">
@@ -150,6 +150,7 @@ class Component extends DCLogic {
     this.state = {
       theme,
       nav: null,
+      section: '',
       current: '',
       pages: {},
       search: '',
@@ -162,7 +163,8 @@ class Component extends DCLogic {
     this._onHash = () => {
       const h = (location.hash || '').replace('#','').replace(/^\//,'');
       if (h && this._allIds().includes(h) && h !== this.state.current) {
-        this.setState({ current: h }, () => {
+        const section = this._sectionForPage(h);
+        this.setState({ current: h, section: section || this.state.section }, () => {
           window.scrollTo(0, 0);
           this._ensurePage(h);
           setTimeout(() => this._spy(), 60);
@@ -188,10 +190,11 @@ class Component extends DCLogic {
       const res = await fetch('./nav.json');
       if (!res.ok) throw new Error('nav.json not found');
       const nav = await res.json();
-      const valid = nav.groups.flatMap(g => g.items.map(i => i.id));
+      const valid = this._allIdsFromNav(nav);
       const fromHash = (location.hash || '').replace('#','').replace(/^\//,'');
       const current = valid.includes(fromHash) ? fromHash : nav.defaultPage;
-      this.setState({ nav, current }, () => {
+      const section = this._sectionForPage(current, nav) || nav.defaultSection || 'overview';
+      this.setState({ nav, current, section }, () => {
         if (!fromHash || !valid.includes(fromHash)) location.hash = current;
         this._ensurePage(current);
         setTimeout(() => this._spy(), 60);
@@ -201,22 +204,44 @@ class Component extends DCLogic {
     }
   }
 
+  _allIdsFromNav(nav){
+    const ids = [];
+    (nav.sections || []).forEach(sec => sec.groups.forEach(g => g.items.forEach(i => ids.push(i.id))));
+    return ids;
+  }
+
+  _sectionForPage(id, nav){
+    nav = nav || this.state.nav;
+    if (!nav) return null;
+    for (const sec of nav.sections || [])
+      for (const g of sec.groups)
+        for (const i of g.items)
+          if (i.id === id) return sec.id;
+    return null;
+  }
+
+  _currentSection(){
+    return this.state.section || this._sectionForPage(this.state.current) || this.state.nav?.defaultSection || 'overview';
+  }
+
   _nav(){
     if (!this.state.nav) return [];
-    return this.state.nav.groups.map(g => ({
+    const sec = (this.state.nav.sections || []).find(s => s.id === this._currentSection());
+    return (sec?.groups || []).map(g => ({
       label: g.label,
-      items: g.items.map(it => ({ id: it.id, label: it.label, icon: it.icon || 'info' })),
+      items: g.items.map(it => ({ id: it.id, label: it.label, icon: it.icon || 'info', path: it.path, description: it.description })),
     }));
   }
 
   _allIds(){
-    const o = [];
-    this._nav().forEach(g => g.items.forEach(i => o.push(i.id)));
-    return o;
+    return this._allIdsFromNav(this.state.nav || { sections: [] });
   }
 
   _find(id){
-    for (const g of this._nav()) for (const i of g.items) if (i.id === id) return { item: i, group: g.label };
+    for (const sec of this.state.nav?.sections || [])
+      for (const g of sec.groups)
+        for (const i of g.items)
+          if (i.id === id) return { item: i, group: g.label, section: sec.id, sectionLabel: sec.label };
     return null;
   }
 
@@ -340,15 +365,14 @@ class Component extends DCLogic {
     if (this.state.pages[id]) return;
     const found = this._find(id);
     if (!found) return;
-    const navItem = this.state.nav.groups.flatMap(g => g.items).find(i => i.id === id);
     try {
-      const res = await fetch('./content/' + navItem.path);
-      if (!res.ok) throw new Error('Failed to load ' + navItem.path);
+      const res = await fetch('./content/' + found.item.path);
+      if (!res.ok) throw new Error('Failed to load ' + found.item.path);
       const raw = await res.text();
       const { meta, body } = this._parseFrontmatter(raw);
       const page = {
         title: meta.title || found.item.label,
-        subtitle: meta.description || navItem.description || '',
+        subtitle: meta.description || found.item.description || '',
         blocks: this._markdownToBlocks(body),
       };
       const pages = Object.assign({}, this.state.pages, { [id]: page });
@@ -448,13 +472,18 @@ class Component extends DCLogic {
     const data = this._content(cur);
     const found = this._find(cur);
     const groupLabel = found ? found.group : 'Documentation';
+    const activeSection = this._currentSection();
+    const sectionMeta = (this.state.nav?.sections || []).find(s => s.id === activeSection);
 
-    const primaryLabels = ['Overview','About','FAQs','API','Blogs','Contribute','Support'];
-    const primaryNav = primaryLabels.map((label, i) => ({
-      label,
-      style: i === 0
-        ? { fontSize: 14.5, fontWeight: 600, color: 'var(--text)', background: 'var(--pill)', padding: '7px 14px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' }
-        : { fontSize: 14.5, fontWeight: 500, color: 'var(--muted)', padding: '7px 12px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' },
+    const tabActive = { fontSize: 14.5, fontWeight: 600, color: 'var(--text)', background: 'var(--pill)', padding: '7px 14px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' };
+    const tabIdle = { fontSize: 14.5, fontWeight: 500, color: 'var(--muted)', padding: '7px 12px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' };
+    const primaryNav = (this.state.nav?.sections || []).map(sec => ({
+      label: sec.label,
+      onClick: (e) => {
+        e.preventDefault();
+        this.setState({ section: sec.id }, () => this._go(sec.defaultPage));
+      },
+      style: sec.id === activeSection ? tabActive : tabIdle,
     }));
 
     const github = (this.state.nav && this.state.nav.site && this.state.nav.site.github) || 'https://github.com/sonmezerekrem/atrisos';
@@ -481,7 +510,7 @@ class Component extends DCLogic {
 
     const crumbBase = { fontSize: 14, color: 'var(--muted)', cursor: 'default', whiteSpace: 'nowrap' };
     const crumbs = [
-      { label: 'Overview', style: crumbBase, chev: false },
+      { label: sectionMeta?.label || 'Overview', style: crumbBase, chev: false },
       { label: groupLabel, style: crumbBase, chev: true },
       { label: found ? found.item.label : data.title, style: { fontSize: 14, color: 'var(--accent)', fontWeight: 600, whiteSpace: 'nowrap' }, chev: true },
     ];
@@ -523,12 +552,19 @@ class Component extends DCLogic {
     const q = this.state.search.trim().toLowerCase();
     let results = [];
     if (q) {
-      this._nav().forEach(g => g.items.forEach(it => {
-        if (it.label.toLowerCase().includes(q)) results.push({
-          label: it.label, group: g.label, icon: this.icon(it.icon, 16),
-          onClick: (e) => { e.preventDefault(); this._go(it.id); this.setState({ search: '', showResults: false }); },
+      (this.state.nav?.sections || []).forEach(sec => sec.groups.forEach(g => g.items.forEach(it => {
+        const hay = (it.label + ' ' + (it.description || '')).toLowerCase();
+        if (hay.includes(q)) results.push({
+          label: it.label, group: sec.label, icon: this.icon(it.icon, 16),
+          onClick: (e) => {
+            e.preventDefault();
+            this.setState({ section: sec.id }, () => {
+              this._go(it.id);
+              this.setState({ search: '', showResults: false });
+            });
+          },
         });
-      }));
+      })));
       results = results.slice(0, 8);
     }
 
@@ -547,7 +583,12 @@ class Component extends DCLogic {
       onSearchBlur: () => { setTimeout(() => this.setState({ showResults: false }), 160); },
       showResults: this.state.showResults && results.length > 0, results,
       toggleTheme: () => this.toggleTheme(),
-      onHome: (e) => { e.preventDefault(); this._go((this.state.nav && this.state.nav.defaultPage) || 'getting-started'); },
+      onHome: (e) => {
+        e.preventDefault();
+        const sec = this.state.nav?.defaultSection || 'overview';
+        const def = (this.state.nav?.sections || []).find(s => s.id === sec)?.defaultPage || 'getting-started';
+        this.setState({ section: sec }, () => this._go(def));
+      },
       primaryNav, socials, navGroups,
       page: { title: data.title, subtitle: data.subtitle, crumbs },
       blocks, toc: tocVals,

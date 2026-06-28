@@ -1,5 +1,6 @@
 ---
 title: Stack Format
+section: overview
 group: Core Concepts
 order: 2
 icon: folder

@@ -6,10 +6,11 @@ Documentation for [atrisos](https://github.com/sonmezerekrem/atrisos) — CLI + 
 
 The docs site lives in this folder and is designed for [GitHub Pages](https://pages.github.com/).
 
+**Top menu:** Overview · Agents · CLI Reference · Templates · Contribution
+
 | Path | Purpose |
 |------|---------|
-| [`index.html`](index.html) | Documentation UI (Documentify design system) |
-| [`design-template/`](design-template/) | Design system source (Documentify + dc-runtime) |
+| [`index.html`](index.html) | Documentation UI |
 | [`content/`](content/) | **Markdown pages** — add `.md` files here |
 | [`build.mjs`](build.mjs) | Scans `content/` and generates `nav.json` |
 | [`nav.json`](nav.json) | Generated navigation (run `make docs`) |

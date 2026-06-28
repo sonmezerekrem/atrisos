@@ -1,5 +1,6 @@
 ---
 title: Installation
+section: overview
 group: Introduction
 order: 2
 icon: pin

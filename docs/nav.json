@@ -1,94 +1,280 @@
 {
   "site": {
     "brand": "Atrisos",
-    "version": "Version 2.0",
     "accent": "orange",
     "defaultTheme": "light",
     "github": "https://github.com/sonmezerekrem/atrisos",
     "basePath": "/atrisos"
   },
+  "defaultSection": "overview",
   "defaultPage": "getting-started",
-  "groups": [
+  "sections": [
     {
-      "label": "Introduction",
-      "items": [
+      "id": "overview",
+      "label": "Overview",
+      "defaultPage": "getting-started",
+      "groups": [
         {
-          "id": "getting-started",
-          "label": "Getting Started",
-          "icon": "info",
-          "description": "Overview of atrisos — CLI and TUI for Podman Compose stacks with automatic Traefik routing.",
-          "path": "getting-started.md"
+          "label": "Introduction",
+          "items": [
+            {
+              "id": "getting-started",
+              "label": "Getting Started",
+              "icon": "info",
+              "description": "Overview of atrisos — CLI and TUI for Podman Compose stacks with automatic Traefik routing.",
+              "path": "getting-started.md"
+            },
+            {
+              "id": "install",
+              "label": "Installation",
+              "icon": "pin",
+              "description": "Install atrisos on macOS and Linux, first-run setup, and requirements.",
+              "path": "install.md"
+            }
+          ]
         },
         {
-          "id": "install",
-          "label": "Installation",
-          "icon": "pin",
-          "description": "Install atrisos on macOS and Linux, first-run setup, and requirements.",
-          "path": "install.md"
+          "label": "Core Concepts",
+          "items": [
+            {
+              "id": "design",
+              "label": "Design",
+              "icon": "grid",
+              "description": "Architecture, components, and key design decisions behind atrisos.",
+              "path": "design.md"
+            },
+            {
+              "id": "stack-format",
+              "label": "Stack Format",
+              "icon": "folder",
+              "description": "Stack folder layout, compose.yml rules, and config.yml schema.",
+              "path": "stack-format.md"
+            },
+            {
+              "id": "traefik",
+              "label": "Traefik",
+              "icon": "folder",
+              "description": "Managed Traefik setup, domain wiring, TLS modes, and compose merge pipeline.",
+              "path": "traefik.md"
+            }
+          ]
+        },
+        {
+          "label": "Configuration",
+          "items": [
+            {
+              "id": "global-config",
+              "label": "Global Config",
+              "icon": "info",
+              "description": "Global atrisos configuration file schema at ~/.config/atrisos/config.yml.",
+              "path": "global-config.md"
+            }
+          ]
         }
       ]
     },
     {
-      "label": "Core Concepts",
-      "items": [
-        {
-          "id": "design",
-          "label": "Design",
-          "icon": "grid",
-          "description": "Architecture, components, and key design decisions behind atrisos.",
-          "path": "design.md"
-        },
-        {
-          "id": "stack-format",
-          "label": "Stack Format",
-          "icon": "folder",
-          "description": "Stack folder layout, compose.yml rules, and config.yml schema.",
-          "path": "stack-format.md"
-        },
-        {
-          "id": "traefik",
-          "label": "Traefik",
-          "icon": "folder",
-          "description": "Managed Traefik setup, domain wiring, TLS modes, and compose merge pipeline.",
-          "path": "traefik.md"
-        }
-      ]
-    },
-    {
-      "label": "Reference",
-      "items": [
-        {
-          "id": "global-config",
-          "label": "Global Config",
-          "icon": "info",
-          "description": "Global atrisos configuration file schema at ~/.config/atrisos/config.yml.",
-          "path": "global-config.md"
-        },
-        {
-          "id": "cli-reference",
-          "label": "CLI Reference",
-          "icon": "info",
-          "description": "All atrisos CLI commands, flags, and exit codes.",
-          "path": "cli-reference.md"
-        },
-        {
-          "id": "templates",
-          "label": "Templates",
-          "icon": "folder",
-          "description": "Stack init templates — format, available templates, and how to add new ones.",
-          "path": "templates.md"
-        }
-      ]
-    },
-    {
+      "id": "agents",
       "label": "Agents",
-      "items": [
+      "defaultPage": "agents/create-stack",
+      "groups": [
         {
-          "id": "agents/create-stack",
-          "label": "Create Stack (AI Agent)",
-          "icon": "users",
-          "description": "AI agent prompt for generating atrisos stacks — paste into any AI assistant.",
-          "path": "agents/create-stack.md"
+          "label": "Prompts",
+          "items": [
+            {
+              "id": "agents/create-stack",
+              "label": "Create Stack",
+              "icon": "users",
+              "description": "AI agent prompt for generating atrisos stacks — paste into any AI assistant.",
+              "path": "agents/create-stack.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "cli-reference",
+      "label": "CLI Reference",
+      "defaultPage": "cli-reference/usage",
+      "groups": [
+        {
+          "label": "Basics",
+          "items": [
+            {
+              "id": "cli-reference/usage",
+              "label": "Usage & Flags",
+              "icon": "info",
+              "description": "CLI invocation, global flags, exit codes, and environment variables.",
+              "path": "cli-reference/usage.md"
+            }
+          ]
+        },
+        {
+          "label": "Stack Commands",
+          "items": [
+            {
+              "id": "cli-reference/stack-lifecycle",
+              "label": "Stack Lifecycle",
+              "icon": "folder",
+              "description": "Start, stop, restart, update, and watch stacks.",
+              "path": "cli-reference/stack-lifecycle.md"
+            },
+            {
+              "id": "cli-reference/inspect",
+              "label": "Inspect & Debug",
+              "icon": "info",
+              "description": "Render merged compose, logs, status, validation, and outdated checks.",
+              "path": "cli-reference/inspect.md"
+            },
+            {
+              "id": "cli-reference/maintenance",
+              "label": "Maintenance",
+              "icon": "folder",
+              "description": "Backup, exec, shell, export, and import commands.",
+              "path": "cli-reference/maintenance.md"
+            }
+          ]
+        },
+        {
+          "label": "Discovery & Init",
+          "items": [
+            {
+              "id": "cli-reference/discovery",
+              "label": "Discovery & Init",
+              "icon": "pin",
+              "description": "List, register, unregister stacks and run the init wizard.",
+              "path": "cli-reference/discovery.md"
+            }
+          ]
+        },
+        {
+          "label": "Interactive",
+          "items": [
+            {
+              "id": "cli-reference/tui",
+              "label": "TUI",
+              "icon": "grid",
+              "description": "Interactive dashboard and keyboard shortcuts.",
+              "path": "cli-reference/tui.md"
+            }
+          ]
+        },
+        {
+          "label": "Traefik",
+          "items": [
+            {
+              "id": "cli-reference/traefik-commands",
+              "label": "Traefik Commands",
+              "icon": "folder",
+              "description": "Manage the shared Traefik reverse proxy instance.",
+              "path": "cli-reference/traefik-commands.md"
+            }
+          ]
+        },
+        {
+          "label": "Meta",
+          "items": [
+            {
+              "id": "cli-reference/meta",
+              "label": "Version & Meta",
+              "icon": "info",
+              "description": "Version info, self-update, and shell completion.",
+              "path": "cli-reference/meta.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "templates",
+      "label": "Templates",
+      "defaultPage": "templates/overview",
+      "groups": [
+        {
+          "label": "Using Templates",
+          "items": [
+            {
+              "id": "templates/overview",
+              "label": "Overview",
+              "icon": "info",
+              "description": "How atrisos init fetches and caches stack templates.",
+              "path": "templates/overview.md"
+            },
+            {
+              "id": "templates/available",
+              "label": "Available Templates",
+              "icon": "folder",
+              "description": "Built-in stack init templates shipped with atrisos.",
+              "path": "templates/available.md"
+            }
+          ]
+        },
+        {
+          "label": "Template Format",
+          "items": [
+            {
+              "id": "templates/format",
+              "label": "Template Format",
+              "icon": "grid",
+              "description": "Directory layout, manifest.json, template.yml, and .tmpl files.",
+              "path": "templates/format.md"
+            }
+          ]
+        },
+        {
+          "label": "Contributing Templates",
+          "items": [
+            {
+              "id": "templates/adding",
+              "label": "Adding Templates",
+              "icon": "pin",
+              "description": "How to create and submit a new init template.",
+              "path": "templates/adding.md"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "contribution",
+      "label": "Contribution",
+      "defaultPage": "contribution/getting-started",
+      "groups": [
+        {
+          "label": "Getting Started",
+          "items": [
+            {
+              "id": "contribution/getting-started",
+              "label": "Getting Started",
+              "icon": "pin",
+              "description": "Development setup and project overview for contributors.",
+              "path": "contribution/getting-started.md"
+            }
+          ]
+        },
+        {
+          "label": "Guidelines",
+          "items": [
+            {
+              "id": "contribution/guidelines",
+              "label": "Code & Docs",
+              "icon": "info",
+              "description": "Guidelines for code changes and documentation updates.",
+              "path": "contribution/guidelines.md"
+            }
+          ]
+        },
+        {
+          "label": "Process",
+          "items": [
+            {
+              "id": "contribution/pull-requests",
+              "label": "Pull Requests",
+              "icon": "folder",
+              "description": "Issue workflow, pull requests, releases, and license.",
+              "path": "contribution/pull-requests.md"
+            }
+          ]
         }
       ]
     }

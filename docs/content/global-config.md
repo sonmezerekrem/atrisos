@@ -1,6 +1,7 @@
 ---
 title: Global Config
-group: Reference
+section: overview
+group: Configuration
 order: 1
 icon: info
 description: Global atrisos configuration file schema at ~/.config/atrisos/config.yml.

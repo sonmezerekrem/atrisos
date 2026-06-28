@@ -1,6 +1,7 @@
 ---
-title: Create Stack (AI Agent)
-group: Agents
+title: Create Stack
+section: agents
+group: Prompts
 order: 1
 icon: users
 description: AI agent prompt for generating atrisos stacks — paste into any AI assistant.

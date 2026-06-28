@@ -1,5 +1,6 @@
 ---
 title: Traefik
+section: overview
 group: Core Concepts
 order: 3
 icon: folder

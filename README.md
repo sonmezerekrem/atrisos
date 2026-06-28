@@ -138,9 +138,9 @@ Browse the docs site locally with `make docs-serve`, or read markdown in [`docs/
 | Installation | [`docs/content/install.md`](docs/content/install.md) |
 | Stack format and config.yml | [`docs/content/stack-format.md`](docs/content/stack-format.md) |
 | Traefik integration | [`docs/content/traefik.md`](docs/content/traefik.md) |
-| CLI reference | [`docs/content/cli-reference.md`](docs/content/cli-reference.md) |
+| CLI reference | [`docs/content/cli-reference/usage.md`](docs/content/cli-reference/usage.md) |
 | Global config | [`docs/content/global-config.md`](docs/content/global-config.md) |
-| Init templates | [`docs/content/templates.md`](docs/content/templates.md) |
+| Init templates | [`docs/content/templates/overview.md`](docs/content/templates/overview.md) |
 | AI agent prompt | [`docs/content/agents/create-stack.md`](docs/content/agents/create-stack.md) |
 
 ---
