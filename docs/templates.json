@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-28T23:00:00Z",
+  "version": "2026-06-29T00:00:00Z",
   "templates": [
     {
       "name": "basic",
@@ -24,6 +24,12 @@
       "display": "Valkey 8.1",
       "description": "Valkey 8.1 key-value store (Redis-compatible) with persistence",
       "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/valkey.png"
+    },
+    {
+      "name": "rabbitmq",
+      "display": "RabbitMQ 4",
+      "description": "Message broker with management UI and scheduled backups",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/rabbitmq.png"
     },
     {
       "name": "mongo",

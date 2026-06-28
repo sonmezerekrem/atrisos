@@ -1,0 +1,25 @@
+name: "{{.Name}}"
+description: "RabbitMQ 4 message broker"
+tags:
+  - queue
+  - infrastructure
+meta: {}
+{{- if .domain}}
+
+domains:
+  - service: rabbitmq
+    host: "{{.domain}}"
+    port: 15672
+    tls: {{.tls}}
+{{- end}}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - rabbitmq_data

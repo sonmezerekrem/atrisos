@@ -1,0 +1,22 @@
+services:
+  rabbitmq:
+    image: docker.io/library/rabbitmq:4-management-alpine
+    ports:
+      - "{{.external_port}}:5672"
+      - "{{.management_port}}:15672"
+    expose:
+      - "15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_DEFAULT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_DEFAULT_PASS}
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+volumes:
+  rabbitmq_data:

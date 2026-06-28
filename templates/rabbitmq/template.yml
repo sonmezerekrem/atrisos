@@ -1,0 +1,24 @@
+name: rabbitmq
+display: RabbitMQ 4
+description: Message broker with management UI and scheduled backups
+prompts:
+  - name: rabbitmq_user
+    label: "Default username"
+    type: string
+    default: "rabbitmq"
+  - name: rabbitmq_password
+    label: "Default password"
+    type: string
+    generate: random_password
+  - name: external_port
+    label: "Host port to bind AMQP on"
+    type: int
+    default: "5672"
+  - name: management_port
+    label: "Host port to bind management UI on"
+    type: int
+    default: "15672"
+  - name: domain
+    label: "Management UI domain (optional, leave blank to skip Traefik routing)"
+    type: string
+    required: false
