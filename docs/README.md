@@ -10,7 +10,8 @@ The docs site lives in this folder and is designed for [GitHub Pages](https://pa
 
 | Path | Purpose |
 |------|---------|
-| [`index.html`](index.html) | Documentation UI |
+| [`index.html`](index.html) | Documentation shell (loads `app.js`) |
+| [`app.js`](app.js) | Docs UI (React, no build step) |
 | [`content/`](content/) | **Markdown pages** — add `.md` files here |
 | [`build.mjs`](build.mjs) | Scans `content/` and generates `nav.json` |
 | [`nav.json`](nav.json) | Generated navigation (run `make docs`) |
