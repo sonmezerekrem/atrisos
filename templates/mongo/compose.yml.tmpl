@@ -1,6 +1,6 @@
 services:
   mongo:
-    image: mongo:8
+    image: docker.io/library/mongo:8
     ports:
       - "{{.external_port}}:27017"
     volumes:

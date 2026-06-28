@@ -1,6 +1,6 @@
 services:
   wordpress:
-    image: wordpress:latest
+    image: docker.io/library/wordpress:latest
     expose:
       - "80"
     volumes:
@@ -16,7 +16,7 @@ services:
     restart: unless-stopped
 
   db:
-    image: mysql:8
+    image: docker.io/library/mysql:8
     volumes:
       - db_data:/var/lib/mysql
     environment:

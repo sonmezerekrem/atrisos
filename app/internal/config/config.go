@@ -70,7 +70,7 @@ func defaults() *Config {
 			Network:   "atrisos_net",
 			HTTPPort:  80,
 			HTTPSPort: 443,
-			Image:     "traefik:v3",
+			Image:     "docker.io/library/traefik:v3",
 		},
 		Backup: BackupDefaults{
 			DefaultDestination: filepath.Join(home, "atrisos-backups"),
