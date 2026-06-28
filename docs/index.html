@@ -50,7 +50,6 @@
       <a onClick="{{ onHome }}" style="display:flex;align-items:center;gap:11px;flex-shrink:0;cursor:pointer;text-decoration:none;color:var(--text);">
         <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;">{{ brandIcon }}</span>
         <span style="font-weight:700;font-size:20px;letter-spacing:-.02em;">{{ brand }}</span>
-        <span style="font-size:11.5px;font-weight:500;color:var(--muted);background:var(--pill);padding:3px 8px;border-radius:6px;">{{ version }}</span>
       </a>
       <div style="flex:1;display:flex;justify-content:center;position:relative;">
         <div style="position:relative;width:100%;max-width:560px;">
@@ -74,8 +73,6 @@
       </div>
       <div style="display:flex;align-items:center;gap:16px;flex-shrink:0;">
         <button onClick="{{ toggleTheme }}" title="Toggle theme" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;" style-hover="background:var(--hover);color:var(--text)">{{ themeIcon }}</button>
-        <a style="font-size:15px;font-weight:500;color:var(--text);cursor:pointer;text-decoration:none;">Log In</a>
-        <button style="font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:none;padding:10px 18px;border-radius:10px;cursor:pointer;" style-hover="filter:brightness(.94)">Create Account</button>
       </div>
     </header>
 
@@ -86,7 +83,7 @@
         </sc-for>
       </div>
       <div style="display:flex;align-items:center;gap:18px;color:var(--faint);">
-        <sc-for list="{{ socials }}" as="s" hint-placeholder-count="4">
+        <sc-for list="{{ socials }}" as="s" hint-placeholder-count="1">
           <a href="{{ s.href }}" target="_blank" rel="noopener" style="display:flex;cursor:pointer;color:inherit;" style-hover="color:var(--muted)">{{ s.icon }}</a>
         </sc-for>
       </div>
@@ -408,6 +405,7 @@ class Component extends DCLogic {
     if (name === 'instagram') return E('svg', com, E('rect', { x: 3, y: 3, width: 18, height: 18, rx: 5 }), E('circle', { cx: 12, cy: 12, r: 4 }), E('circle', { cx: 17, cy: 7, r: .6, fill: 'currentColor', stroke: 'none' }));
     if (name === 'linkedin') return E('svg', com, E('rect', { x: 3, y: 3, width: 18, height: 18, rx: 3 }), E('path', { d: 'M7 10v7' }), E('path', { d: 'M7 7h.01' }), E('path', { d: 'M11 17v-4a2 2 0 0 1 4 0v4' }), E('path', { d: 'M11 13v4' }));
     if (name === 'facebook') return E('svg', com, E('path', { d: 'M14 8.5h2.2V6H14a2.8 2.8 0 0 0-2.8 2.8V11H9.5v2.5h1.7V21H14v-7.5h2.2l.5-2.5H14V9.1c0-.4.2-.6.6-.6Z' }));
+    if (name === 'github') return E('svg', com, E('path', { d: 'M9 19c-4.3 1.4-4.3-2.5-6-3m12 5v-3.5c0-1 .4-2 1-2.7 3.2-1.4 3.2-5.5 0-6.9-1-.9-2.2-1-3.4-.9-1.1.1-2.2.6-3 .6-.8 0-1.9-.5-3-.6-1.2-.1-2.4 0-3.4.9-3.2 1.4-3.2 5.5 0 6.9 1 .7 1 1.7 1 2.7V21' }));
     if (name === 'twitter') return E('svg', com, E('path', { d: 'M21 5.9c-.7.3-1.4.5-2.2.6a3.8 3.8 0 0 0 1.7-2.1c-.8.5-1.6.8-2.5 1a3.8 3.8 0 0 0-6.5 3.5A10.8 10.8 0 0 1 3.7 4.9a3.8 3.8 0 0 0 1.2 5.1c-.6 0-1.2-.2-1.7-.5a3.8 3.8 0 0 0 3 3.7 3.8 3.8 0 0 1-1.7.1 3.8 3.8 0 0 0 3.5 2.6A7.6 7.6 0 0 1 2.5 17.5 10.7 10.7 0 0 0 8.3 19c7 0 10.8-5.8 10.8-10.8v-.5c.7-.5 1.4-1.2 1.9-1.9Z' }));
     return null;
   }
@@ -460,12 +458,7 @@ class Component extends DCLogic {
     }));
 
     const github = (this.state.nav && this.state.nav.site && this.state.nav.site.github) || 'https://github.com/sonmezerekrem/atrisos';
-    const socials = [
-      { name: 'instagram', href: '#' },
-      { name: 'linkedin', href: '#' },
-      { name: 'facebook', href: '#' },
-      { name: 'twitter', href: github },
-    ].map(s => ({ icon: this.social(s.name), href: s.href }));
+    const socials = [{ icon: this.social('github'), href: github }];
 
     const navGroups = this._nav().map(g => ({
       label: g.label,
@@ -544,7 +537,6 @@ class Component extends DCLogic {
     return {
       theme: this.state.theme, accent,
       brand: this.props.brandName || site.brand || 'Atrisos',
-      version: site.version || 'Version 2.0',
       brandIcon: this.icon('book', 17, 1.7),
       searchIcon: this.icon('search', 18, 1.7),
       themeIcon: this.icon(this.state.theme === 'dark' ? 'sun' : 'moon', 18, 1.7),
