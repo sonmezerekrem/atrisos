@@ -13,35 +13,131 @@ while [ $# -gt 0 ]; do
   esac
 done
 
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+info()    { printf '\033[1;34m→\033[0m %s\n' "$*"; }
+success() { printf '\033[1;32m✓\033[0m %s\n' "$*"; }
+warn()    { printf '\033[1;33m!\033[0m %s\n' "$*"; }
+die()     { printf '\033[1;31m✗\033[0m %s\n' "$*" >&2; exit 1; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# ---------------------------------------------------------------------------
 # Detect OS and arch
+# ---------------------------------------------------------------------------
+
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
 ARCH="$(uname -m)"
 case "$ARCH" in
   x86_64)        ARCH="amd64" ;;
   aarch64|arm64) ARCH="arm64" ;;
-  *) echo "Unsupported architecture: $ARCH"; exit 1 ;;
+  *) die "Unsupported architecture: $ARCH" ;;
 esac
 
 case "$OS" in
   linux|darwin) ;;
-  *) echo "Unsupported OS: $OS"; exit 1 ;;
+  *) die "Unsupported OS: $OS" ;;
 esac
 
-ASSET="atrisos-${OS}-${ARCH}"
+# ---------------------------------------------------------------------------
+# Install Podman
+# ---------------------------------------------------------------------------
 
-# Fetch latest version if not specified
-if [ -z "$VERSION" ]; then
-  VERSION="$(curl -fsSL https://api.github.com/repos/sonmezerekrem/atrisos/releases/latest \
-    | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
-  if [ -z "$VERSION" ]; then
-    echo "Failed to fetch latest version. Use --version to specify one."
-    exit 1
+install_podman_macos() {
+  # Ensure Homebrew is present
+  if ! have brew; then
+    info "Installing Homebrew..."
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    # Add brew to PATH for the rest of this script
+    if [ -d "/opt/homebrew/bin" ]; then
+      export PATH="/opt/homebrew/bin:$PATH"
+    elif [ -d "/usr/local/bin" ]; then
+      export PATH="/usr/local/bin:$PATH"
+    fi
+  fi
+
+  if have podman; then
+    success "Podman already installed ($(podman --version))"
+  else
+    info "Installing Podman via Homebrew..."
+    brew install podman
+    success "Podman installed"
+  fi
+}
+
+install_podman_linux() {
+  # Detect package manager
+  if have apt-get; then
+    info "Installing Podman via apt..."
+    sudo apt-get update -qq
+    sudo apt-get install -y podman
+    # Install podman-compose as fallback for older Podman (< 4.7)
+    PODMAN_VER="$(podman --version 2>/dev/null | awk '{print $3}')"
+    PODMAN_MAJOR="$(echo "$PODMAN_VER" | cut -d. -f1)"
+    if [ "${PODMAN_MAJOR:-0}" -lt 4 ] || { [ "${PODMAN_MAJOR:-0}" -eq 4 ] && [ "$(echo "$PODMAN_VER" | cut -d. -f2)" -lt 7 ]; }; then
+      info "Podman < 4.7 detected — installing podman-compose..."
+      sudo apt-get install -y podman-compose || true
+    fi
+    success "Podman installed"
+  elif have dnf; then
+    info "Installing Podman via dnf..."
+    sudo dnf install -y podman
+    success "Podman installed"
+  elif have pacman; then
+    info "Installing Podman via pacman..."
+    sudo pacman -Sy --noconfirm podman
+    success "Podman installed"
+  else
+    warn "Could not detect package manager — install Podman manually: https://podman.io/get-started"
+  fi
+}
+
+if have podman; then
+  success "Podman already installed ($(podman --version))"
+else
+  info "Podman not found — installing..."
+  if [ "$OS" = "darwin" ]; then
+    install_podman_macos
+  else
+    install_podman_linux
   fi
 fi
 
-echo "→ Installing atrisos $VERSION ($OS/$ARCH)..."
+# ---------------------------------------------------------------------------
+# Verify podman compose is available
+# ---------------------------------------------------------------------------
 
-# Determine install prefix
+if podman compose version >/dev/null 2>&1; then
+  : # built-in compose available
+elif have podman-compose; then
+  : # python wrapper available
+else
+  warn "Neither 'podman compose' nor 'podman-compose' found."
+  if [ "$OS" = "linux" ] && have apt-get; then
+    info "Installing podman-compose..."
+    sudo apt-get install -y podman-compose
+  else
+    warn "Install it manually: https://github.com/containers/podman-compose"
+  fi
+fi
+
+# ---------------------------------------------------------------------------
+# Download atrisos binary
+# ---------------------------------------------------------------------------
+
+ASSET="atrisos-${OS}-${ARCH}"
+
+if [ -z "$VERSION" ]; then
+  info "Fetching latest atrisos release..."
+  VERSION="$(curl -fsSL https://api.github.com/repos/sonmezerekrem/atrisos/releases/latest \
+    | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
+  [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
+fi
+
+info "Installing atrisos $VERSION ($OS/$ARCH)..."
+
 if [ -z "$PREFIX" ]; then
   if [ "$OS" = "darwin" ] && [ -d "/opt/homebrew" ]; then
     PREFIX="/opt/homebrew"
@@ -53,19 +149,19 @@ fi
 INSTALL_DIR="$PREFIX/bin"
 INSTALL_PATH="$INSTALL_DIR/atrisos"
 
-# Download to a temp file
 TMP="$(mktemp)"
 curl -fsSL "https://github.com/sonmezerekrem/atrisos/releases/download/${VERSION}/${ASSET}" -o "$TMP"
 chmod +x "$TMP"
 
-# Install (may need sudo)
 if [ -w "$INSTALL_DIR" ]; then
   mv "$TMP" "$INSTALL_PATH"
 else
-  echo "→ Installing to $INSTALL_PATH (sudo required)..."
+  info "Installing to $INSTALL_PATH (sudo required)..."
   sudo mv "$TMP" "$INSTALL_PATH"
 fi
 
-echo "✓ atrisos $VERSION installed to $INSTALL_PATH"
+success "atrisos $VERSION installed to $INSTALL_PATH"
 echo ""
-echo "Run: atrisos --help"
+echo "  Run: atrisos"
+echo "  (First run will complete setup — ACME email, stacks root, Podman machine on macOS)"
+echo ""
