@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/selfupdate"
+	"github.com/sonmezerekrem/atrisos/internal/selfupdate"
 	"github.com/spf13/cobra"
 )
 

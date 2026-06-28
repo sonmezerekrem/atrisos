@@ -4,8 +4,8 @@ package tui
 import (
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
-	"github.com/sonmezerekrem/atrisos/app/internal/registry"
+	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/registry"
 )
 
 // Run launches the atrisos TUI in alternate screen mode.

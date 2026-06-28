@@ -15,11 +15,11 @@ make install        # builds + installs to /usr/local/bin
 make lint           # go vet ./...
 make build-all      # cross-compile all four targets to dist/
 
-go test ./app/internal/...   # run all tests (84 tests, no integration setup needed)
-go vet ./app/...
+cd app && go test ./internal/...   # run all tests (84 tests, no integration setup needed)
+cd app && go vet ./...
 ```
 
-The `Version` variable is injected via ldflags: `-X github.com/sonmezerekrem/atrisos/app/cmd.Version=$(VERSION)`.
+The `Version` variable is injected via ldflags: `-X github.com/sonmezerekrem/atrisos/cmd.Version=$(VERSION)`.
 
 ## Directory layout
 

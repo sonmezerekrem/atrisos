@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
-	"github.com/sonmezerekrem/atrisos/app/internal/podman"
+	"github.com/sonmezerekrem/atrisos/internal/podman"
 )
 
 // containerDot returns a colored status dot for a single container.

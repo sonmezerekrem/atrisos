@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/sonmezerekrem/atrisos/app/cmd"
+	"github.com/sonmezerekrem/atrisos/cmd"
 )
 
 func main() {

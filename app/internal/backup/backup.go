@@ -8,8 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/restic"
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/restic"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 // BackupRunConfig holds the parameters for a single backup run.

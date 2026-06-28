@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"path/filepath"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/spf13/cobra"
 )
 

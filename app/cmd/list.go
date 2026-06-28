@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/tabwriter"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/spf13/cobra"
 )
 

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
-	"github.com/sonmezerekrem/atrisos/app/internal/registry"
+	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/registry"
 )
 
 // Discover finds all stacks from the configured root directory and registered

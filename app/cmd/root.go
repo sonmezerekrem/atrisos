@@ -8,10 +8,10 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
-	"github.com/sonmezerekrem/atrisos/app/internal/podman"
-	"github.com/sonmezerekrem/atrisos/app/internal/registry"
-	"github.com/sonmezerekrem/atrisos/app/tui"
+	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/podman"
+	"github.com/sonmezerekrem/atrisos/internal/registry"
+	"github.com/sonmezerekrem/atrisos/tui"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 )

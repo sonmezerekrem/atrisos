@@ -10,7 +10,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 // InstallAutoStart creates and enables the OS scheduler unit for a stack's

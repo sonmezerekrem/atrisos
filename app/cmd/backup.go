@@ -5,8 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/backup"
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/backup"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/spf13/cobra"
 )
 

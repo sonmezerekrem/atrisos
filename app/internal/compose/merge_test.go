@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
-	"github.com/sonmezerekrem/atrisos/app/internal/traefik"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/traefik"
 )
 
 // --- MergeOverride tests ---

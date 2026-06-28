@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/config"
 )
 
 // Manager manages the shared Traefik compose stack.

@@ -9,12 +9,12 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
-	"github.com/sonmezerekrem/atrisos/app/internal/notify"
-	"github.com/sonmezerekrem/atrisos/app/internal/outdated"
-	"github.com/sonmezerekrem/atrisos/app/internal/podman"
-	"github.com/sonmezerekrem/atrisos/app/internal/registry"
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/notify"
+	"github.com/sonmezerekrem/atrisos/internal/outdated"
+	"github.com/sonmezerekrem/atrisos/internal/podman"
+	"github.com/sonmezerekrem/atrisos/internal/registry"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 // panelMode distinguishes which panel is currently displayed.

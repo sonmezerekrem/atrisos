@@ -10,8 +10,8 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
-	"github.com/sonmezerekrem/atrisos/app/internal/templates"
+	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/templates"
 	"github.com/spf13/cobra"
 )
 

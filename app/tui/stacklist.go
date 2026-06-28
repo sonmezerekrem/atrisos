@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/podman"
+	"github.com/sonmezerekrem/atrisos/internal/podman"
 )
 
 // statusDot returns a colored status indicator for a stack.

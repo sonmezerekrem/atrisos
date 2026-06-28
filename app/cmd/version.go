@@ -6,7 +6,7 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/selfupdate"
+	"github.com/sonmezerekrem/atrisos/internal/selfupdate"
 )
 
 // Version is set at build time via -ldflags.

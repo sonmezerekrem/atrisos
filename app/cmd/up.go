@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/compose"
-	"github.com/sonmezerekrem/atrisos/app/internal/scheduler"
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
-	"github.com/sonmezerekrem/atrisos/app/internal/traefik"
+	"github.com/sonmezerekrem/atrisos/internal/compose"
+	"github.com/sonmezerekrem/atrisos/internal/scheduler"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/traefik"
 	"github.com/spf13/cobra"
 )
 

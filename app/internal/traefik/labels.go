@@ -6,7 +6,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 var nonAlphanumRE = regexp.MustCompile(`[^a-z0-9]+`)

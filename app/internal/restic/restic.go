@@ -11,7 +11,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/config"
 )
 
 const targetVersion = "0.17.3"

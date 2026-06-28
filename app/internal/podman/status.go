@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 // ContainerInfo holds live container state for one container in a stack.

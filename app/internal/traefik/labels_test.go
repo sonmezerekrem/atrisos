@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 )
 
 func expectedHash(absPath string) string {

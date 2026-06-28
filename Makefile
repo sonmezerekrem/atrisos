@@ -1,16 +1,16 @@
 .PHONY: build build-all clean install lint
 
 VERSION ?= dev
-LDFLAGS := -s -w -X github.com/sonmezerekrem/atrisos/app/cmd.Version=$(VERSION)
+LDFLAGS := -s -w -X github.com/sonmezerekrem/atrisos/cmd.Version=$(VERSION)
 
 build:
-	go build -ldflags "$(LDFLAGS)" -o atrisos ./app/
+	cd app && go build -ldflags "$(LDFLAGS)" -o ../atrisos .
 
 build-all:
-	GOOS=linux  GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/atrisos-linux-amd64  ./app/
-	GOOS=linux  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/atrisos-linux-arm64  ./app/
-	GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o dist/atrisos-darwin-amd64 ./app/
-	GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o dist/atrisos-darwin-arm64 ./app/
+	cd app && GOOS=linux  GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ../dist/atrisos-linux-amd64  .
+	cd app && GOOS=linux  GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o ../dist/atrisos-linux-arm64  .
+	cd app && GOOS=darwin GOARCH=amd64 go build -ldflags "$(LDFLAGS)" -o ../dist/atrisos-darwin-amd64 .
+	cd app && GOOS=darwin GOARCH=arm64 go build -ldflags "$(LDFLAGS)" -o ../dist/atrisos-darwin-arm64 .
 
 install: build
 	install -m 0755 atrisos /usr/local/bin/atrisos
@@ -20,4 +20,4 @@ clean:
 	rm -rf dist/
 
 lint:
-	go vet ./app/...
+	cd app && go vet ./...

@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/sonmezerekrem/atrisos/app/internal/compose"
-	"github.com/sonmezerekrem/atrisos/app/internal/stack"
+	"github.com/sonmezerekrem/atrisos/internal/compose"
+	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/spf13/cobra"
 )
 
