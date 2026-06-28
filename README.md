@@ -3,7 +3,7 @@
 ![CI](https://github.com/sonmezerekrem/atrisos/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/sonmezerekrem/atrisos/actions/workflows/release.yml/badge.svg)
 ![Go version](https://img.shields.io/badge/Go-1.26-00ADD8?logo=go&logoColor=white)
-![License](https://img.shields.io/github/license/sonmezerekrem/atrisos)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Latest release](https://img.shields.io/github/v/release/sonmezerekrem/atrisos)
 
 **atrisos** manages Podman Compose stacks with automatic Traefik routing and TLS. Write a plain `compose.yml` with no Traefik content — atrisos injects routing labels at runtime, provisions Let's Encrypt certificates, and handles scheduling, backups, and notifications.
