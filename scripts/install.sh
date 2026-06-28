@@ -128,15 +128,7 @@ fi
 # ---------------------------------------------------------------------------
 
 ASSET="atrisos-${OS}-${ARCH}"
-
-if [ -z "$VERSION" ]; then
-  info "Fetching latest atrisos release..."
-  VERSION="$(curl -fsSL https://api.github.com/repos/sonmezerekrem/atrisos/releases/latest \
-    | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
-  [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
-fi
-
-info "Installing atrisos $VERSION ($OS/$ARCH)..."
+REPO="sonmezerekrem/atrisos"
 
 if [ -z "$PREFIX" ]; then
   if [ "$OS" = "darwin" ] && [ -d "/opt/homebrew" ]; then
@@ -150,7 +142,28 @@ INSTALL_DIR="$PREFIX/bin"
 INSTALL_PATH="$INSTALL_DIR/atrisos"
 
 TMP="$(mktemp)"
-curl -fsSL "https://github.com/sonmezerekrem/atrisos/releases/download/${VERSION}/${ASSET}" -o "$TMP"
+
+# Use gh CLI if available (works with private repos)
+if have gh; then
+  if [ -z "$VERSION" ]; then
+    info "Fetching latest atrisos release..."
+    VERSION="$(gh release list -R "$REPO" --limit 1 --json tagName -q '.[0].tagName')"
+    [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
+  fi
+  info "Installing atrisos $VERSION ($OS/$ARCH)..."
+  gh release download "$VERSION" -R "$REPO" --pattern "$ASSET" -O "$TMP"
+else
+  # Fallback: public curl download
+  if [ -z "$VERSION" ]; then
+    info "Fetching latest atrisos release..."
+    VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+      | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
+    [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
+  fi
+  info "Installing atrisos $VERSION ($OS/$ARCH)..."
+  curl -fsSL "https://github.com/${REPO}/releases/download/${VERSION}/${ASSET}" -o "$TMP"
+fi
+
 chmod +x "$TMP"
 
 if [ -w "$INSTALL_DIR" ]; then
