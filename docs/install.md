@@ -32,7 +32,7 @@ brew install podman
 ## Install atrisos
 
 ```sh
-curl -fsSL https://get.atrisos.io/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh
 ```
 
 The script:
@@ -44,12 +44,12 @@ The script:
 
 To install a specific version:
 ```sh
-curl -fsSL https://get.atrisos.io/install.sh | sh -s -- --version v0.3.0
+curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh -s -- --version v0.3.0
 ```
 
 To install to a custom location:
 ```sh
-curl -fsSL https://get.atrisos.io/install.sh | sh -s -- --prefix ~/.local
+curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh -s -- --prefix ~/.local
 ```
 
 ---
@@ -87,7 +87,7 @@ atrisos up myapp
 ## Updating atrisos
 
 ```sh
-curl -fsSL https://get.atrisos.io/install.sh | sh
+curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh
 ```
 
 The installer is idempotent and will replace the existing binary.
