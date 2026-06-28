@@ -432,7 +432,7 @@ func (m AppModel) renderHeader() string {
 		traefikStyled = colorDim.Render("traefik: " + traefikStr)
 	}
 
-	title := headerStyle.Render("atrisos")
+	title := headerStyle.Render("Atrisos")
 	pad := m.width - lipgloss.Width(title) - lipgloss.Width(traefikStyled) - 1
 	if pad < 1 {
 		pad = 1

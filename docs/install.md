@@ -20,7 +20,7 @@ sudo apt install -y podman-compose
 
 - macOS 13+ (Ventura or later)
 - `podman` installed via Homebrew
-- `podman machine` running (atrisos manages this for you)
+- `podman machine` running (Atrisos manages this for you)
 
 Install Podman on macOS:
 ```sh
@@ -29,7 +29,7 @@ brew install podman
 
 ---
 
-## Install atrisos
+## Install Atrisos
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh
@@ -65,11 +65,11 @@ The setup wizard:
 1. Creates `~/.config/atrisos/config.yml` with defaults
 2. Prompts for your ACME email (for Let's Encrypt TLS)
 3. Prompts for your stacks root directory (default `~/atrisos-stacks`)
-4. **macOS only**: if no `podman machine` exists, silently creates and starts one named `atrisos` with a progress indicator (~1–2 min, one-time). On subsequent runs atrisos starts the machine automatically if it is stopped.
+4. **macOS only**: if no `podman machine` exists, silently creates and starts one named `atrisos` with a progress indicator (~1–2 min, one-time). On subsequent runs Atrisos starts the machine automatically if it is stopped.
 5. Creates the `atrisos_net` Podman network
 6. Starts the managed Traefik container
 
-No additional tools need to be installed for backup support — atrisos downloads and manages its own `restic` binary the first time a backup runs.
+No additional tools need to be installed for backup support — Atrisos downloads and manages its own `restic` binary the first time a backup runs.
 
 ---
 
@@ -84,7 +84,7 @@ atrisos up myapp
 
 ---
 
-## Updating atrisos
+## Updating Atrisos
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/sonmezerekrem/atrisos/main/scripts/install.sh | sh

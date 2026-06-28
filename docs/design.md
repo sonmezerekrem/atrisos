@@ -5,7 +5,7 @@
 1. Single binary that works on macOS and Ubuntu/Debian without root.
 2. Every stack is a self-contained directory — portable, version-controllable.
 3. Traefik routing and TLS require zero manual label work from the user.
-4. Daemonless: no background atrisos daemon, Podman handles runtime state.
+4. Daemonless: no background Atrisos daemon, Podman handles runtime state.
 
 ## Architecture overview
 
@@ -31,21 +31,21 @@ atrisos binary (Go)
 
 ### Podman, not Docker
 
-Podman is daemonless and rootless by default. atrisos invokes `podman compose` (Podman v4.7+ has built-in compose support) or falls back to `podman-compose` (Python wrapper).
+Podman is daemonless and rootless by default. Atrisos invokes `podman compose` (Podman v4.7+ has built-in compose support) or falls back to `podman-compose` (Python wrapper).
 
-On macOS, containers cannot run directly on the host — they require a Linux kernel. Podman solves this with `podman machine`, a lightweight Linux VM (Apple Virtualization framework on Apple Silicon, QEMU on Intel). On first run atrisos silently creates and starts a machine named `atrisos` if none exists, showing a progress indicator. Subsequent runs start the machine automatically if it is stopped. On Linux, Podman runs natively — no VM involved.
+On macOS, containers cannot run directly on the host — they require a Linux kernel. Podman solves this with `podman machine`, a lightweight Linux VM (Apple Virtualization framework on Apple Silicon, QEMU on Intel). On first run Atrisos silently creates and starts a machine named `atrisos` if none exists, showing a progress indicator. Subsequent runs start the machine automatically if it is stopped. On Linux, Podman runs natively — no VM involved.
 
-### No atrisos daemon
+### No Atrisos Daemon
 
-atrisos does not run a background service. Stack state is read live from Podman each time a status command runs. The only persistent process atrisos manages is the Traefik container itself (and the user's app containers), which are owned by Podman.
+Atrisos does not run a background service. Stack state is read live from Podman each time a status command runs. The only persistent process Atrisos manages is the Traefik container itself (and the user's app containers), which are owned by Podman.
 
 ### Shared Podman network
 
-All stacks and Traefik share a single Podman network named `atrisos_net`. Traefik discovers containers on this network via Docker-compatible labels. atrisos creates this network at first use if it doesn't exist.
+All stacks and Traefik share a single Podman network named `atrisos_net`. Traefik discovers containers on this network via Docker-compatible labels. Atrisos creates this network at first use if it doesn't exist.
 
 ### Stack discovery
 
-atrisos maintains a registry file at `~/.config/atrisos/registry.json` that stores:
+Atrisos maintains a registry file at `~/.config/atrisos/registry.json` that stores:
 - The configured root directory (default `~/atrisos-stacks`)
 - A list of extra registered paths (absolute paths to individual stack dirs)
 
@@ -56,13 +56,13 @@ Discovery walks the root dir (one level deep, each subdirectory is a candidate s
 Two modes, configurable globally and per-stack:
 
 - `manual` — user runs `atrisos update <stack>` to pull images and recreate containers
-- `watch` — atrisos watches the stack directory for file changes and re-applies via `podman compose up -d` (Compose reconciles the diff — unchanged containers are left running, only changed services are recreated)
+- `watch` — Atrisos watches the stack directory for file changes and re-applies via `podman compose up -d` (Compose reconciles the diff — unchanged containers are left running, only changed services are recreated)
 
 The global default is set in `~/.config/atrisos/config.yml`. Each stack's `config.yml` can override.
 
 ### Bundled restic
 
-atrisos ships with a bundled `restic` binary for volume backups. On first backup run, atrisos downloads the correct restic release for the current OS/arch from the official restic GitHub releases and stores it at `~/.config/atrisos/bin/restic`. Users do not need to install restic separately. atrisos verifies the binary checksum after download. The bundled restic is only used by atrisos internals — it is not added to the user's PATH.
+Atrisos ships with a bundled `restic` binary for volume backups. On first backup run, Atrisos downloads the correct restic release for the current OS/arch from the official restic GitHub releases and stores it at `~/.config/atrisos/bin/restic`. Users do not need to install restic separately. Atrisos verifies the binary checksum after download. The bundled restic is only used by Atrisos internals — it is not added to the user's PATH.
 
 ### Traefik router naming and collision avoidance
 
@@ -74,7 +74,7 @@ The log panel uses a single goroutine that runs `podman compose logs -f --timest
 
 ### Backup scheduling via system scheduler
 
-atrisos does not run a daemon, so backup schedules are handed off to the OS scheduler. When a stack has `backup.enabled: true` and a `backup.schedule` cron expression, `atrisos up` installs a scheduler unit and `atrisos down` removes it.
+Atrisos does not run a daemon, so backup schedules are handed off to the OS scheduler. When a stack has `backup.enabled: true` and a `backup.schedule` cron expression, `atrisos up` installs a scheduler unit and `atrisos down` removes it.
 
 - **Linux**: generates a systemd user service + timer pair under `~/.config/systemd/user/`:
   - `atrisos-backup-<stack>.service` — runs `atrisos backup <stack>`

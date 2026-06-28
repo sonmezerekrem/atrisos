@@ -88,7 +88,7 @@ func exitWithCode(code int, format string, args ...interface{}) {
 var rootCmd = &cobra.Command{
 	Use:   "atrisos",
 	Short: "Manage Podman Compose stacks with automatic Traefik routing",
-	Long: `atrisos — CLI + TUI tool for managing Podman Compose stacks with
+	Long: `Atrisos — CLI + TUI tool for managing Podman Compose stacks with
 automatic Traefik routing. Run with no arguments to launch the TUI.`,
 	SilenceErrors: true,
 	SilenceUsage:  true,
@@ -177,7 +177,7 @@ func expandTilde(p string) string {
 
 // runFirstRunSetup prompts the user for basic configuration and saves config.yml.
 func runFirstRunSetup(cfg *config.Config, cfgPath string) error {
-	fmt.Println("Welcome to atrisos! Let's set up your configuration.")
+	fmt.Println("Welcome to Atrisos! Let's set up your configuration.")
 	fmt.Println()
 	reader := bufio.NewReader(os.Stdin)
 

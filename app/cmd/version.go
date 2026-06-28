@@ -17,7 +17,7 @@ var versionCmd = &cobra.Command{
 	Short: "Print version information",
 	Annotations: map[string]string{"skipPreRun": "true"},
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Printf("atrisos %s\n", Version)
+		fmt.Printf("Atrisos %s\n", Version)
 		fmt.Printf("OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Printf("Go:      %s\n", runtime.Version())
 		latest := selfupdate.LatestVersion()

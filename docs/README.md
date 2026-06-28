@@ -1,10 +1,10 @@
-# atrisos
+# Atrisos
 
 A CLI + TUI tool for managing Podman Compose stacks with automatic Traefik routing.
 
 ## What it does
 
-atrisos lets you run self-hosted applications as Compose stacks with a consistent folder layout. It handles:
+Atrisos lets you run self-hosted applications as Compose stacks with a consistent folder layout. It handles:
 
 - Starting/stopping/updating stacks via CLI commands or an interactive TUI
 - Daemonless container management via Podman
@@ -32,7 +32,7 @@ atrisos lets you run self-hosted applications as Compose stacks with a consisten
 | [stack-format.md](stack-format.md) | Stack folder layout, config.yml schema |
 | [traefik.md](traefik.md) | Managed Traefik setup, domain wiring, TLS |
 | [cli-reference.md](cli-reference.md) | All CLI commands and flags |
-| [global-config.md](global-config.md) | Global atrisos config file schema |
+| [global-config.md](global-config.md) | Global Atrisos config file schema |
 | [install.md](install.md) | Installation and first-run guide |
 | [templates.md](templates.md) | Stack init templates: format, available templates, how to add new ones |
-| [agents/create-stack.md](agents/create-stack.md) | AI agent prompt for generating atrisos stacks — paste into any AI assistant |
+| [agents/create-stack.md](agents/create-stack.md) | AI agent prompt for generating Atrisos stacks — paste into any AI assistant |

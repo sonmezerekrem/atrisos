@@ -11,7 +11,7 @@ var selfUpdateVersion string
 
 var selfUpdateCmd = &cobra.Command{
 	Use:         "self-update",
-	Short:       "Download and install the latest atrisos release",
+	Short:       "Download and install the latest Atrisos release",
 	Annotations: map[string]string{"skipPreRun": "true"},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		target := selfUpdateVersion

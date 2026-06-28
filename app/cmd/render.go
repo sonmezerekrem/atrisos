@@ -15,7 +15,7 @@ var renderDiff bool
 
 var renderCmd = &cobra.Command{
 	Use:   "render <stack>",
-	Short: "Print the merged compose document that atrisos would pass to podman compose",
+	Short: "Print the merged compose document that Atrisos would pass to podman compose",
 	Args:  cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		stacks, err := resolveStacks(args, false, "")

@@ -75,7 +75,7 @@ func Update(targetVersion string) error {
 	url := fmt.Sprintf("%s/%s/atrisos-%s-%s",
 		downloadBase, targetVersion, runtime.GOOS, runtime.GOARCH)
 
-	fmt.Printf("→ downloading atrisos %s...\n", targetVersion)
+	fmt.Printf("→ downloading Atrisos %s...\n", targetVersion)
 
 	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Get(url) //nolint:gosec
@@ -114,7 +114,7 @@ func Update(targetVersion string) error {
 		}
 	}
 
-	fmt.Printf("✓ atrisos updated to %s\n", targetVersion)
+	fmt.Printf("✓ Atrisos updated to %s\n", targetVersion)
 	return nil
 }
 

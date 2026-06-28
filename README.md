@@ -1,4 +1,4 @@
-# atrisos
+# Atrisos
 
 ![CI](https://github.com/sonmezerekrem/atrisos/actions/workflows/ci.yml/badge.svg)
 ![Release](https://github.com/sonmezerekrem/atrisos/actions/workflows/release.yml/badge.svg)
@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Latest release](https://img.shields.io/github/v/release/sonmezerekrem/atrisos)
 
-**atrisos** manages Podman Compose stacks with automatic Traefik routing and TLS. Write a plain `compose.yml` with no Traefik content — atrisos injects routing labels at runtime, provisions Let's Encrypt certificates, and handles scheduling, backups, and notifications.
+**Atrisos** manages Podman Compose stacks with automatic Traefik routing and TLS. Write a plain `compose.yml` with no Traefik content — atrisos injects routing labels at runtime, provisions Let's Encrypt certificates, and handles scheduling, backups, and notifications.
 
 Targets macOS (Apple Silicon + Intel) and Ubuntu/Debian (amd64 + arm64).
 
@@ -55,7 +55,7 @@ domains:
     tls: true          # true | staging | false
 ```
 
-atrisos merges Traefik labels into the compose document at runtime. Your `compose.yml` is never modified.
+Atrisos merges Traefik labels into the compose document at runtime. Your `compose.yml` is never modified.
 
 ---
 

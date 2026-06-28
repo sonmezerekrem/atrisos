@@ -94,7 +94,7 @@ func linuxBackupTimerUnit(name string) string {
 }
 
 const linuxAutoStartServiceTmpl = `[Unit]
-Description=atrisos stack: {{.Name}}
+Description=Atrisos stack: {{.Name}}
 After=default.target
 
 [Service]
@@ -107,7 +107,7 @@ WantedBy=default.target
 `
 
 const linuxBackupServiceTmpl = `[Unit]
-Description=atrisos backup: {{.Name}}
+Description=Atrisos backup: {{.Name}}
 
 [Service]
 Type=oneshot
@@ -115,7 +115,7 @@ ExecStart={{.AtrisosPath}} backup {{.Name}}
 `
 
 const linuxBackupTimerTmpl = `[Unit]
-Description=atrisos backup timer: {{.Name}}
+Description=Atrisos backup timer: {{.Name}}
 
 [Timer]
 OnCalendar={{.OnCalendar}}

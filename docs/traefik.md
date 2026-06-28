@@ -1,6 +1,6 @@
 # Traefik Integration
 
-atrisos manages a single shared Traefik instance that routes traffic to all stacks. Users write zero Traefik-related content in their `compose.yml` — domain configuration lives exclusively in `config.yml`, and atrisos generates everything else.
+Atrisos manages a single shared Traefik instance that routes traffic to all stacks. Users write zero Traefik-related content in their `compose.yml` — domain configuration lives exclusively in `config.yml`, and Atrisos generates everything else.
 
 ---
 
@@ -25,7 +25,7 @@ Internet / LAN
 ```
 
 1. User runs `atrisos up myapp`.
-2. atrisos reads `compose.yml` and `config.yml`, builds a merged compose document in memory, and passes it to `podman compose`. The original `compose.yml` is never written to.
+2. Atrisos reads `compose.yml` and `config.yml`, builds a merged compose document in memory, and passes it to `podman compose`. The original `compose.yml` is never written to.
 3. Traefik detects new containers on `atrisos_net` via the Podman socket and picks up their labels immediately — no Traefik restart.
 4. ACME certificates are issued per domain on first HTTPS request.
 
@@ -61,9 +61,9 @@ domains:
     tls: true
 ```
 
-### What atrisos generates in memory
+### What Atrisos Generates in Memory
 
-atrisos deep-merges the following additions into the parsed compose structure:
+Atrisos deep-merges the following additions into the parsed compose structure:
 
 ```yaml
 services:

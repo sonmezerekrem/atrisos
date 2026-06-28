@@ -1,6 +1,6 @@
 # Stack Format
 
-Each application is a self-contained directory called a **stack**. atrisos discovers stacks from a root directory and/or registered paths.
+Each application is a self-contained directory called a **stack**. Atrisos discovers stacks from a root directory and/or registered paths.
 
 ## Directory layout
 
@@ -15,13 +15,13 @@ myapp/
 
 `docker-compose.yml` is also accepted as an alias for `compose.yml`. If both exist, `compose.yml` takes precedence.
 
-If `compose.override.yml` exists, atrisos deep-merges it with `compose.yml` before applying Traefik label injection — same semantics as `docker compose` override files. No config is needed; presence of the file is the signal.
+If `compose.override.yml` exists, Atrisos deep-merges it with `compose.yml` before applying Traefik label injection — same semantics as `docker compose` override files. No config is needed; presence of the file is the signal.
 
 ---
 
 ## compose.yml
 
-Write a standard Compose file describing your services, volumes, and networks — **with no Traefik-related content whatsoever**. No labels, no Traefik network references, no special ports for routing. atrisos handles all of that by merging your compose file with the `domains` config at runtime before invoking `podman compose`.
+Write a standard Compose file describing your services, volumes, and networks — **with no Traefik-related content whatsoever**. No labels, no Traefik network references, no special ports for routing. Atrisos handles all of that by merging your compose file with the `domains` config at runtime before invoking `podman compose`.
 
 ```yaml
 services:
@@ -47,8 +47,8 @@ volumes:
 ```
 
 Rules for compose.yml:
-- Do not add `labels` with `traefik.*` keys — atrisos injects them.
-- Do not reference `atrisos_net` in `networks` — atrisos injects it for routed services.
+- Do not add `labels` with `traefik.*` keys — Atrisos injects them.
+- Do not reference `atrisos_net` in `networks` — Atrisos injects it for routed services.
 - Do not map host ports (e.g. `ports: - "3000:3000"`) for services routed through Traefik — traffic goes through the shared network.
 - Internal service-to-service communication works normally via Compose's default network.
 
@@ -71,7 +71,7 @@ Commit a `.env.example` with placeholder values; add `.env` to `.gitignore`.
 
 ## config.yml
 
-atrisos-specific configuration for the stack.
+Atrisos-specific configuration for the stack.
 
 ```yaml
 # ── Metadata ────────────────────────────────────────────────
@@ -107,13 +107,13 @@ update:
   mode: "manual"               # "manual" | "watch" — overrides global default
 
 # ── Boot ────────────────────────────────────────────────────
-auto_start: false              # if true, atrisos installs a systemd/launchd unit
+auto_start: false              # if true, Atrisos installs a systemd/launchd unit
                                # so this stack starts automatically after a reboot
 
 # ── Backup ──────────────────────────────────────────────────
 backup:
   enabled: false
-  schedule: "0 2 * * *"       # cron syntax — atrisos installs a systemd timer / launchd
+  schedule: "0 2 * * *"       # cron syntax — Atrisos installs a systemd timer / launchd
                                # plist on `atrisos up` to trigger this automatically
   destination: "~/backups/myapp"
   volumes:
@@ -154,7 +154,7 @@ description: "No public domain needed"
 
 ## Validation rules
 
-atrisos validates `config.yml` on load and reports errors before attempting to start anything.
+Atrisos validates `config.yml` on load and reports errors before attempting to start anything.
 
 | Field | Rule |
 |-------|------|
@@ -235,7 +235,7 @@ backup:
     - db_data
 ```
 
-What atrisos does with this before running `podman compose`:
+What Atrisos does with this before running `podman compose`:
 - Injects Traefik labels onto the `web` service for `myapp.example.com:3000`
 - Injects Traefik labels onto the `api` service for `api.example.com:8080`
 - Attaches `atrisos_net` to `web` and `api` (not `db`, which has no domain entry)
