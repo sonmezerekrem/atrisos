@@ -1,4 +1,4 @@
-.PHONY: build build-all clean install lint
+.PHONY: build build-all clean install lint docs docs-serve
 
 VERSION ?= dev
 LDFLAGS := -s -w -X github.com/sonmezerekrem/atrisos/cmd.Version=$(VERSION)
@@ -21,3 +21,9 @@ clean:
 
 lint:
 	cd app && go vet ./...
+
+docs:
+	node docs/build.mjs
+
+docs-serve: docs
+	cd docs && python3 -m http.server 8080

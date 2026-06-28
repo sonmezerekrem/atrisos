@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Atrisos Docs</title>
+<script src="./design-template/support.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Hanken Grotesk',system-ui,sans-serif;-webkit-font-smoothing:antialiased;}
+  ::selection{background:var(--accent-soft);}
+  [data-theme="light"]{
+    --bg-page:#ececed;--panel:#ffffff;--text:#1a1a1f;--muted:#6a6a73;--faint:#a3a3ad;
+    --border:#ededf0;--border-strong:#e0e0e4;--hover:#f6f6f7;--pill:#f1f1f3;
+    --code-bg:#ffffff;--hero-card:#ffffff;--search-bg:#ffffff;--kbd:#f2f2f4;
+    --code-text:#3f3f46;--code-tag:#9333ea;--code-attr:#0d9488;--code-string:#1f9d55;--code-punct:#9333ea;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 14px 50px rgba(0,0,0,.05);
+    --scroll:rgba(0,0,0,.16);
+  }
+  [data-theme="dark"]{
+    --bg-page:#000000;--panel:#0e0e11;--text:#f4f4f6;--muted:#9d9da7;--faint:#67676f;
+    --border:#212126;--border-strong:#2c2c33;--hover:#18181c;--pill:#1b1b20;
+    --code-bg:#141417;--hero-card:#191920;--search-bg:#141417;--kbd:#26262c;
+    --code-text:#d4d4d8;--code-tag:#c084fc;--code-attr:#2dd4bf;--code-string:#4ade80;--code-punct:#c084fc;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 18px 60px rgba(0,0,0,.55);
+    --scroll:rgba(255,255,255,.16);
+  }
+  [data-accent="orange"]{--accent:#ef6820;--accent-soft:rgba(239,104,32,.12);}
+  [data-accent="blue"]{--accent:#2f72e6;--accent-soft:rgba(47,114,230,.12);}
+  [data-accent="violet"]{--accent:#7c5cff;--accent-soft:rgba(124,92,255,.13);}
+  [data-accent="green"]{--accent:#16a34a;--accent-soft:rgba(22,163,74,.12);}
+  .dfy-scroll::-webkit-scrollbar{width:8px;height:8px;}
+  .dfy-scroll::-webkit-scrollbar-thumb{background:var(--scroll);border-radius:8px;}
+  .dfy-scroll::-webkit-scrollbar-track{background:transparent;}
+</style>
+</helmet>
+<div data-theme="{{ theme }}" data-accent="{{ accent }}" style="min-height:100vh;background:var(--bg-page);color:var(--text);">
+  <div style="max-width:1664px;margin:0 auto;background:var(--panel);min-height:100vh;box-shadow:var(--shadow);">
+
+    <header style="position:sticky;top:0;z-index:40;background:var(--panel);display:flex;align-items:center;gap:24px;padding:16px 40px;border-bottom:1px solid var(--border);">
+      <a onClick="{{ onHome }}" style="display:flex;align-items:center;gap:11px;flex-shrink:0;cursor:pointer;text-decoration:none;color:var(--text);">
+        <span style="display:flex;align-items:center;justify-content:center;width:30px;height:30px;border-radius:8px;background:var(--accent);color:#fff;">{{ brandIcon }}</span>
+        <span style="font-weight:700;font-size:20px;letter-spacing:-.02em;">{{ brand }}</span>
+        <span style="font-size:11.5px;font-weight:500;color:var(--muted);background:var(--pill);padding:3px 8px;border-radius:6px;">{{ version }}</span>
+      </a>
+      <div style="flex:1;display:flex;justify-content:center;position:relative;">
+        <div style="position:relative;width:100%;max-width:560px;">
+          <div style="display:flex;align-items:center;gap:10px;height:42px;padding:0 12px 0 14px;background:var(--search-bg);border:1px solid var(--border-strong);border-radius:11px;">
+            <span style="color:var(--faint);display:flex;flex-shrink:0;">{{ searchIcon }}</span>
+            <input ref="{{ searchRef }}" value="{{ search }}" onChange="{{ onSearch }}" onFocus="{{ onSearchFocus }}" onBlur="{{ onSearchBlur }}" placeholder="Search" style="flex:1;border:none;outline:none;background:transparent;font-family:inherit;font-size:15px;color:var(--text);" />
+            <span style="font-size:12px;color:var(--faint);background:var(--kbd);border-radius:6px;padding:2px 7px;flex-shrink:0;">⌘ K</span>
+          </div>
+          <sc-if value="{{ showResults }}" hint-placeholder-val="{{ false }}">
+            <div class="dfy-scroll" style="position:absolute;top:50px;left:0;right:0;background:var(--panel);border:1px solid var(--border-strong);border-radius:12px;box-shadow:var(--shadow);padding:6px;z-index:50;max-height:340px;overflow-y:auto;">
+              <sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+                <a onMouseDown="{{ r.onClick }}" style="display:flex;align-items:center;gap:11px;padding:9px 11px;border-radius:8px;cursor:pointer;text-decoration:none;" style-hover="background:var(--hover)">
+                  <span style="color:var(--faint);display:flex;">{{ r.icon }}</span>
+                  <span style="font-size:14.5px;color:var(--text);font-weight:500;">{{ r.label }}</span>
+                  <span style="margin-left:auto;font-size:12px;color:var(--faint);">{{ r.group }}</span>
+                </a>
+              </sc-for>
+            </div>
+          </sc-if>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;flex-shrink:0;">
+        <button onClick="{{ toggleTheme }}" title="Toggle theme" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:none;background:transparent;color:var(--muted);border-radius:9px;cursor:pointer;" style-hover="background:var(--hover);color:var(--text)">{{ themeIcon }}</button>
+        <a style="font-size:15px;font-weight:500;color:var(--text);cursor:pointer;text-decoration:none;">Log In</a>
+        <button style="font-size:15px;font-weight:600;color:#fff;background:var(--accent);border:none;padding:10px 18px;border-radius:10px;cursor:pointer;" style-hover="filter:brightness(.94)">Create Account</button>
+      </div>
+    </header>
+
+    <nav style="display:flex;align-items:center;justify-content:space-between;padding:9px 40px;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:4px;">
+        <sc-for list="{{ primaryNav }}" as="p" hint-placeholder-count="7">
+          <a style="{{ p.style }}" style-hover="color:var(--text)">{{ p.label }}</a>
+        </sc-for>
+      </div>
+      <div style="display:flex;align-items:center;gap:18px;color:var(--faint);">
+        <sc-for list="{{ socials }}" as="s" hint-placeholder-count="4">
+          <a href="{{ s.href }}" target="_blank" rel="noopener" style="display:flex;cursor:pointer;color:inherit;" style-hover="color:var(--muted)">{{ s.icon }}</a>
+        </sc-for>
+      </div>
+    </nav>
+
+    <div style="display:grid;grid-template-columns:268px minmax(0,1fr) 268px;align-items:start;">
+      <aside class="dfy-scroll" style="position:sticky;top:73px;max-height:calc(100vh - 73px);overflow-y:auto;padding:30px 22px 60px 40px;">
+        <sc-for list="{{ navGroups }}" as="g" hint-placeholder-count="3">
+          <div style="font-size:13px;font-weight:700;color:var(--text);letter-spacing:.01em;margin:22px 0 12px 12px;">{{ g.label }}</div>
+          <sc-for list="{{ g.items }}" as="item" hint-placeholder-count="5">
+            <a onClick="{{ item.onClick }}" style="{{ item.style }}" style-hover="background:var(--hover)">
+              <span style="display:flex;flex-shrink:0;{{ item.iconColor }}">{{ item.icon }}</span>
+              <span>{{ item.label }}</span>
+            </a>
+          </sc-for>
+        </sc-for>
+      </aside>
+
+      <main style="padding:38px 56px 120px;min-width:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:22px;">
+          <sc-for list="{{ page.crumbs }}" as="c" hint-placeholder-count="3">
+            <sc-if value="{{ c.chev }}" hint-placeholder-val="{{ false }}"><span style="color:var(--faint);display:flex;">{{ chevIcon }}</span></sc-if>
+            <span style="{{ c.style }}">{{ c.label }}</span>
+          </sc-for>
+        </div>
+        <h1 style="font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.08;margin:0 0 16px;color:var(--text);">{{ page.title }}</h1>
+        <p style="font-size:18.5px;line-height:1.55;color:var(--muted);margin:0 0 12px;max-width:760px;">{{ page.subtitle }}</p>
+
+        <sc-for list="{{ blocks }}" as="b" hint-placeholder-count="6">
+          <sc-if value="{{ b.isHero }}" hint-placeholder-val="{{ false }}">{{ b.node }}</sc-if>
+          <sc-if value="{{ b.isH2 }}" hint-placeholder-val="{{ false }}"><h2 data-anchor="{{ b.id }}" style="font-size:27px;font-weight:700;letter-spacing:-.02em;margin:44px 0 16px;color:var(--text);scroll-margin-top:100px;">{{ b.text }}</h2></sc-if>
+          <sc-if value="{{ b.isH3 }}" hint-placeholder-val="{{ false }}"><h3 data-anchor="{{ b.id }}" style="font-size:19px;font-weight:650;letter-spacing:-.01em;margin:30px 0 12px;color:var(--text);scroll-margin-top:100px;">{{ b.text }}</h3></sc-if>
+          <sc-if value="{{ b.isP }}" hint-placeholder-val="{{ false }}"><p style="font-size:16.5px;line-height:1.72;color:var(--muted);margin:0 0 18px;max-width:760px;">{{ b.text }}</p></sc-if>
+          <sc-if value="{{ b.isNode }}" hint-placeholder-val="{{ false }}">{{ b.node }}</sc-if>
+        </sc-for>
+      </main>
+
+      <aside class="dfy-scroll" style="position:sticky;top:73px;max-height:calc(100vh - 73px);overflow-y:auto;padding:38px 40px 60px 24px;">
+        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:18px;">On this page</div>
+        <sc-for list="{{ toc }}" as="t" hint-placeholder-count="3">
+          <a onClick="{{ t.onClick }}" style="{{ t.style }}" style-hover="color:var(--text)">{{ t.title }}</a>
+          <div style="border-left:1px solid var(--border-strong);margin:2px 0 18px;">
+            <sc-for list="{{ t.items }}" as="s" hint-placeholder-count="4">
+              <a onClick="{{ s.onClick }}" style="{{ s.style }}" style-hover="color:var(--text)">{{ s.title }}</a>
+            </sc-for>
+          </div>
+        </sc-for>
+      </aside>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{},&quot;accent&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;orange&quot;,&quot;blue&quot;,&quot;violet&quot;,&quot;green&quot;],&quot;default&quot;:&quot;orange&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;defaultTheme&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;light&quot;,&quot;dark&quot;],&quot;default&quot;:&quot;light&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Theme&quot;},&quot;brandName&quot;:{&quot;editor&quot;:&quot;text&quot;,&quot;default&quot;:&quot;Atrisos&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Brand&quot;}}">
+const MONO = "'JetBrains Mono', ui-monospace, monospace";
+
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    this.searchRef = React.createRef();
+    let theme = (this.props.defaultTheme) || 'light';
+    try { const s = localStorage.getItem('documentify-theme'); if (s) theme = s; } catch(e){}
+    this.state = {
+      theme,
+      nav: null,
+      current: '',
+      pages: {},
+      search: '',
+      showResults: false,
+      active: '',
+    };
+  }
+
+  componentDidMount(){
+    this._onHash = () => {
+      const h = (location.hash || '').replace('#','').replace(/^\//,'');
+      if (h && this._allIds().includes(h) && h !== this.state.current) {
+        this.setState({ current: h }, () => {
+          window.scrollTo(0, 0);
+          this._ensurePage(h);
+          setTimeout(() => this._spy(), 60);
+        });
+      }
+    };
+    window.addEventListener('hashchange', this._onHash);
+    this._onScroll = () => { if (this._raf) return; this._raf = requestAnimationFrame(() => { this._raf = null; this._spy(); }); };
+    window.addEventListener('scroll', this._onScroll, { passive: true });
+    this._onKey = (e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); this.searchRef.current && this.searchRef.current.focus(); } };
+    window.addEventListener('keydown', this._onKey);
+    this._boot();
+  }
+
+  componentWillUnmount(){
+    window.removeEventListener('hashchange', this._onHash);
+    window.removeEventListener('scroll', this._onScroll);
+    window.removeEventListener('keydown', this._onKey);
+  }
+
+  async _boot(){
+    try {
+      const res = await fetch('./nav.json');
+      if (!res.ok) throw new Error('nav.json not found');
+      const nav = await res.json();
+      const valid = nav.groups.flatMap(g => g.items.map(i => i.id));
+      const fromHash = (location.hash || '').replace('#','').replace(/^\//,'');
+      const current = valid.includes(fromHash) ? fromHash : nav.defaultPage;
+      this.setState({ nav, current }, () => {
+        if (!fromHash || !valid.includes(fromHash)) location.hash = current;
+        this._ensurePage(current);
+        setTimeout(() => this._spy(), 60);
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  _nav(){
+    if (!this.state.nav) return [];
+    return this.state.nav.groups.map(g => ({
+      label: g.label,
+      items: g.items.map(it => ({ id: it.id, label: it.label, icon: it.icon || 'info' })),
+    }));
+  }
+
+  _allIds(){
+    const o = [];
+    this._nav().forEach(g => g.items.forEach(i => o.push(i.id)));
+    return o;
+  }
+
+  _find(id){
+    for (const g of this._nav()) for (const i of g.items) if (i.id === id) return { item: i, group: g.label };
+    return null;
+  }
+
+  _go(id){ location.hash = id; }
+
+  _parseFrontmatter(raw){
+    const m = /^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/.exec(raw);
+    if (!m) return { meta: {}, body: raw };
+    const meta = {};
+    m[1].split('\n').forEach(line => {
+      const p = /^([A-Za-z0-9_-]+):\s*(.*)$/.exec(line.trim());
+      if (!p) return;
+      let v = p[2].trim();
+      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) v = v.slice(1, -1);
+      meta[p[1]] = v;
+    });
+    return { meta, body: m[2] };
+  }
+
+  _slug(text){
+    return String(text).toLowerCase().replace(/[^\w\s-]/g, '').trim().replace(/\s+/g, '-');
+  }
+
+  _inline(text){
+    if (!text) return '';
+    return String(text)
+      .replace(/\*\*(.+?)\*\*/g, '$1')
+      .replace(/\*(.+?)\*/g, '$1')
+      .replace(/`(.+?)`/g, '$1')
+      .replace(/\[(.+?)\]\(.+?\)/g, '$1');
+  }
+
+  _markdownToBlocks(body){
+    if (!window.marked) return [{ isP: true, text: 'Markdown renderer failed to load.' }];
+    const blocks = [];
+    const counts = {};
+    const slugify = (t) => {
+      const base = this._slug(t);
+      counts[base] = (counts[base] || 0) + 1;
+      return counts[base] > 1 ? base + '-' + counts[base] : base;
+    };
+    let codeIdx = 0;
+    const tokens = marked.lexer(body);
+    for (const tok of tokens) {
+      if (tok.type === 'heading') {
+        if (tok.depth === 1) continue;
+        const text = this._inline(tok.text);
+        const id = slugify(text);
+        if (tok.depth === 2) blocks.push({ isH2: true, text, id });
+        else if (tok.depth === 3) blocks.push({ isH3: true, text, id });
+        else blocks.push({ isNode: true, node: this._headingNode(Math.min(tok.depth, 4), text, id) });
+      } else if (tok.type === 'paragraph') {
+        blocks.push({ isP: true, text: this._inline(tok.text) });
+      } else if (tok.type === 'code') {
+        const fname = tok.lang || ('snippet-' + (++codeIdx));
+        blocks.push({ isNode: true, node: this.codeCard(fname, tok.text.split('\n')) });
+      } else if (tok.type === 'blockquote') {
+        const inner = (tok.tokens || []).filter(t => t.type === 'paragraph').map(t => this._inline(t.text)).join(' ');
+        if (inner) blocks.push({ isNode: true, node: this._quoteNode(inner) });
+      } else if (tok.type === 'list') {
+        blocks.push({ isNode: true, node: this._listNode(tok) });
+      } else if (tok.type === 'table') {
+        blocks.push({ isNode: true, node: this._tableNode(tok) });
+      } else if (tok.type === 'hr') {
+        blocks.push({ isNode: true, node: this._hrNode() });
+      } else if (tok.type === 'space') {
+        continue;
+      } else if (tok.type === 'html') {
+        blocks.push({ isP: true, text: tok.text.replace(/<[^>]+>/g, '') });
+      }
+    }
+    return blocks.length ? blocks : [{ isP: true, text: 'No content.' }];
+  }
+
+  _headingNode(depth, text, id){
+    const E = React.createElement;
+    const sizes = { 4: '17px' };
+    const size = sizes[depth] || '17px';
+    const tag = 'h' + depth;
+    return E(tag, {
+      'data-anchor': id,
+      id,
+      style: { fontSize: size, fontWeight: 650, letterSpacing: '-.01em', margin: '24px 0 12px', color: 'var(--text)', scrollMarginTop: '100px' },
+    }, text);
+  }
+
+  _quoteNode(text){
+    const E = React.createElement;
+    return E('blockquote', {
+      style: { borderLeft: '3px solid var(--accent)', padding: '4px 0 4px 18px', margin: '0 0 18px', fontSize: '16.5px', lineHeight: 1.72, color: 'var(--muted)', maxWidth: 760 },
+    }, text);
+  }
+
+  _listNode(tok){
+    const E = React.createElement;
+    const Tag = tok.ordered ? 'ol' : 'ul';
+    const base = { fontSize: '16.5px', lineHeight: 1.72, color: 'var(--muted)', margin: '0 0 18px', paddingLeft: '1.4em', maxWidth: 760 };
+    const items = tok.items.map((it, i) => E('li', { key: i, style: { margin: '6px 0' } }, this._inline(it.text)));
+    return E(Tag, { style: base }, items);
+  }
+
+  _tableNode(tok){
+    const E = React.createElement;
+    const cell = (t, i, head) => E(head ? 'th' : 'td', {
+      key: i,
+      style: { border: '1px solid var(--border-strong)', padding: '10px 14px', textAlign: 'left', background: head ? 'var(--pill)' : 'transparent', color: head ? 'var(--text)' : 'var(--muted)', fontWeight: head ? 600 : 400 },
+    }, this._inline(t.text || t));
+    const row = (cells, i, head) => E('tr', { key: i }, cells.map((c, j) => cell(c, j, head)));
+    return E('table', { style: { width: '100%', borderCollapse: 'collapse', margin: '0 0 22px', fontSize: '15px', maxWidth: 760 } },
+      E('thead', null, row(tok.header, 0, true)),
+      E('tbody', null, tok.rows.map((r, i) => row(r, i, false)))
+    );
+  }
+
+  _hrNode(){
+    const E = React.createElement;
+    return E('hr', { style: { border: 'none', borderTop: '1px solid var(--border)', margin: '32px 0' } });
+  }
+
+  async _ensurePage(id){
+    if (this.state.pages[id]) return;
+    const found = this._find(id);
+    if (!found) return;
+    const navItem = this.state.nav.groups.flatMap(g => g.items).find(i => i.id === id);
+    try {
+      const res = await fetch('./content/' + navItem.path);
+      if (!res.ok) throw new Error('Failed to load ' + navItem.path);
+      const raw = await res.text();
+      const { meta, body } = this._parseFrontmatter(raw);
+      const page = {
+        title: meta.title || found.item.label,
+        subtitle: meta.description || navItem.description || '',
+        blocks: this._markdownToBlocks(body),
+      };
+      const pages = Object.assign({}, this.state.pages, { [id]: page });
+      this.setState({ pages }, () => setTimeout(() => this._spy(), 60));
+    } catch (e) {
+      const pages = Object.assign({}, this.state.pages, {
+        [id]: { title: found.item.label, subtitle: '', blocks: [{ isP: true, text: e.message }] },
+      });
+      this.setState({ pages });
+    }
+  }
+
+  _content(id){
+    const found = this._find(id);
+    const cached = this.state.pages[id];
+    if (cached) return cached;
+    const label = found ? found.item.label : 'Loading…';
+    return {
+      title: label,
+      subtitle: '',
+      blocks: [{ isP: true, text: 'Loading…' }],
+    };
+  }
+
+  _spy(){
+    const heads = Array.from(document.querySelectorAll('[data-anchor]'));
+    if (!heads.length) return;
+    let act = heads[0].getAttribute('data-anchor');
+    for (const h of heads) if (h.getBoundingClientRect().top <= 140) act = h.getAttribute('data-anchor');
+    if (act !== this.state.active) this.setState({ active: act });
+  }
+
+  icon(name, size, sw){
+    size = size || 18; sw = sw || 1.7;
+    const E = React.createElement;
+    const P = {
+      info:[['circle',{cx:12,cy:12,r:9}],['path',{d:'M12 11v5'}],['path',{d:'M12 8h.01'}]],
+      pin:[['path',{d:'M12 21c4.4-4.2 7-7.4 7-11a7 7 0 1 0-14 0c0 3.6 2.6 6.8 7 11Z'}],['circle',{cx:12,cy:10,r:2.6}]],
+      grid:[['rect',{x:4,y:4,width:6.5,height:6.5,rx:1.6}],['rect',{x:13.5,y:4,width:6.5,height:6.5,rx:1.6}],['rect',{x:4,y:13.5,width:6.5,height:6.5,rx:1.6}],['rect',{x:13.5,y:13.5,width:6.5,height:6.5,rx:1.6}]],
+      flag:[['path',{d:'M6 21V4'}],['path',{d:'M6 4h11l-2.2 3.6L17 11H6'}]],
+      users:[['circle',{cx:9,cy:8,r:3.2}],['path',{d:'M3.5 20a5.6 5.6 0 0 1 11 0'}],['path',{d:'M16 5.4a3.2 3.2 0 0 1 0 5.2'}],['path',{d:'M18.5 20a5.6 5.6 0 0 0-3.2-5'}]],
+      folder:[['path',{d:'M3 8a2 2 0 0 1 2-2h3.4a2 2 0 0 1 1.4.6L11.4 8H19a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z'}]],
+      search:[['circle',{cx:11,cy:11,r:7}],['path',{d:'M21 21l-4.3-4.3'}]],
+      chev:[['path',{d:'M9 6l6 6-6 6'}]],
+      sun:[['circle',{cx:12,cy:12,r:4}],['path',{d:'M12 2v2'}],['path',{d:'M12 20v2'}],['path',{d:'M4.2 4.2l1.5 1.5'}],['path',{d:'M18.3 18.3l1.5 1.5'}],['path',{d:'M2 12h2'}],['path',{d:'M20 12h2'}],['path',{d:'M4.2 19.8l1.5-1.5'}],['path',{d:'M18.3 5.7l1.5-1.5'}]],
+      moon:[['path',{d:'M21 12.8A8.5 8.5 0 1 1 11.2 3 6.6 6.6 0 0 0 21 12.8Z'}]],
+      book:[['path',{d:'M5 4.5A1.5 1.5 0 0 1 6.5 3H17a1.5 1.5 0 0 1 1.5 1.5v15A1.5 1.5 0 0 0 17 18H6.5A1.5 1.5 0 0 0 5 19.5Z',stroke:'#fff'}],['path',{d:'M9 8h5',stroke:'#fff'}]],
+    };
+    const kids = (P[name] || []).map((p, i) => E(p[0], Object.assign({ key: i }, p[1])));
+    return E('svg', { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: sw, strokeLinecap: 'round', strokeLinejoin: 'round' }, kids);
+  }
+
+  social(name){
+    const E = React.createElement;
+    const com = { width: 17, height: 17, viewBox: '0 0 24 24', fill: 'none', stroke: 'currentColor', strokeWidth: 1.7, strokeLinecap: 'round', strokeLinejoin: 'round' };
+    if (name === 'instagram') return E('svg', com, E('rect', { x: 3, y: 3, width: 18, height: 18, rx: 5 }), E('circle', { cx: 12, cy: 12, r: 4 }), E('circle', { cx: 17, cy: 7, r: .6, fill: 'currentColor', stroke: 'none' }));
+    if (name === 'linkedin') return E('svg', com, E('rect', { x: 3, y: 3, width: 18, height: 18, rx: 3 }), E('path', { d: 'M7 10v7' }), E('path', { d: 'M7 7h.01' }), E('path', { d: 'M11 17v-4a2 2 0 0 1 4 0v4' }), E('path', { d: 'M11 13v4' }));
+    if (name === 'facebook') return E('svg', com, E('path', { d: 'M14 8.5h2.2V6H14a2.8 2.8 0 0 0-2.8 2.8V11H9.5v2.5h1.7V21H14v-7.5h2.2l.5-2.5H14V9.1c0-.4.2-.6.6-.6Z' }));
+    if (name === 'twitter') return E('svg', com, E('path', { d: 'M21 5.9c-.7.3-1.4.5-2.2.6a3.8 3.8 0 0 0 1.7-2.1c-.8.5-1.6.8-2.5 1a3.8 3.8 0 0 0-6.5 3.5A10.8 10.8 0 0 1 3.7 4.9a3.8 3.8 0 0 0 1.2 5.1c-.6 0-1.2-.2-1.7-.5a3.8 3.8 0 0 0 3 3.7 3.8 3.8 0 0 1-1.7.1 3.8 3.8 0 0 0 3.5 2.6A7.6 7.6 0 0 1 2.5 17.5 10.7 10.7 0 0 0 8.3 19c7 0 10.8-5.8 10.8-10.8v-.5c.7-.5 1.4-1.2 1.9-1.9Z' }));
+    return null;
+  }
+
+  highlight(code){
+    const E = React.createElement;
+    const re = /(<\/?)|(>)|("(?:[^"\\]|\\.)*")|([A-Za-z_][\w.-]*)|(=)|(\s+)|([^\s])/g;
+    const out = []; let m, expectTag = false, k = 0;
+    while ((m = re.exec(code))){
+      const t = m[0]; let c = 'var(--code-text)';
+      if (m[1]) { c = 'var(--code-punct)'; expectTag = true; }
+      else if (m[2]) { c = 'var(--code-punct)'; expectTag = false; }
+      else if (m[3]) { c = 'var(--code-string)'; }
+      else if (m[4]) { c = expectTag ? 'var(--code-tag)' : 'var(--code-attr)'; expectTag = false; }
+      else if (m[5]) { c = 'var(--code-punct)'; }
+      out.push(E('span', { key: k++, style: { color: c } }, t));
+    }
+    return out;
+  }
+
+  codeCard(filename, lines, opts){
+    opts = opts || {};
+    const E = React.createElement;
+    return E('div', { style: { background: opts.bg || 'var(--code-bg)', border: '1px solid var(--border-strong)', borderRadius: 12, padding: '18px 20px', overflow: 'hidden', fontFamily: MONO, margin: '0 0 22px', maxWidth: 760 } },
+      E('div', { style: { fontFamily: MONO, fontSize: 13, fontWeight: 600, color: 'var(--accent)' } }, filename),
+      E('div', { style: { width: 34, height: 2, background: 'var(--accent)', borderRadius: 2, margin: '9px 0 15px', opacity: .85 } }),
+      lines.map((ln, i) => E('div', { key: i, style: { fontFamily: MONO, fontSize: 13.5, lineHeight: 1.85, whiteSpace: 'pre' } }, ...this.highlight(ln)))
+    );
+  }
+
+  toggleTheme(){
+    const t = this.state.theme === 'dark' ? 'light' : 'dark';
+    try { localStorage.setItem('documentify-theme', t); } catch(e){}
+    this.setState({ theme: t });
+  }
+
+  renderVals(){
+    const accent = this.props.accent || 'orange';
+    const cur = this.state.current || 'getting-started';
+    const data = this._content(cur);
+    const found = this._find(cur);
+    const groupLabel = found ? found.group : 'Documentation';
+
+    const primaryLabels = ['Overview','About','FAQs','API','Blogs','Contribute','Support'];
+    const primaryNav = primaryLabels.map((label, i) => ({
+      label,
+      style: i === 0
+        ? { fontSize: 14.5, fontWeight: 600, color: 'var(--text)', background: 'var(--pill)', padding: '7px 14px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' }
+        : { fontSize: 14.5, fontWeight: 500, color: 'var(--muted)', padding: '7px 12px', borderRadius: 9, cursor: 'pointer', textDecoration: 'none' },
+    }));
+
+    const github = (this.state.nav && this.state.nav.site && this.state.nav.site.github) || 'https://github.com/sonmezerekrem/atrisos';
+    const socials = [
+      { name: 'instagram', href: '#' },
+      { name: 'linkedin', href: '#' },
+      { name: 'facebook', href: '#' },
+      { name: 'twitter', href: github },
+    ].map(s => ({ icon: this.social(s.name), href: s.href }));
+
+    const navGroups = this._nav().map(g => ({
+      label: g.label,
+      items: g.items.map(it => {
+        const on = it.id === cur;
+        return {
+          label: it.label,
+          icon: this.icon(it.icon, 18, 1.7),
+          iconColor: on ? 'color:var(--accent)' : 'color:var(--faint)',
+          onClick: () => this._go(it.id),
+          style: {
+            display: 'flex', alignItems: 'center', gap: 11, padding: '8px 12px', borderRadius: 9,
+            fontSize: 15, fontWeight: on ? 600 : 500, marginBottom: 1, cursor: 'pointer', textDecoration: 'none',
+            color: on ? 'var(--accent)' : 'var(--muted)',
+            background: on ? 'var(--accent-soft)' : 'transparent',
+          },
+        };
+      }),
+    }));
+
+    const crumbBase = { fontSize: 14, color: 'var(--muted)', cursor: 'default', whiteSpace: 'nowrap' };
+    const crumbs = [
+      { label: 'Overview', style: crumbBase, chev: false },
+      { label: groupLabel, style: crumbBase, chev: true },
+      { label: found ? found.item.label : data.title, style: { fontSize: 14, color: 'var(--accent)', fontWeight: 600, whiteSpace: 'nowrap' }, chev: true },
+    ];
+
+    const blocks = data.blocks.map(b => ({
+      isHero: !!b.isHero, isH2: !!b.isH2, isH3: !!b.isH3, isP: !!b.isP, isNode: !!b.isNode,
+      text: b.text || '', id: b.id || '', node: b.node || null,
+    }));
+
+    const toc = [];
+    data.blocks.forEach(b => {
+      if (b.isH2) toc.push({ id: b.id, title: b.text, items: [] });
+      else if (b.isH3 && toc.length) toc[toc.length - 1].items.push({ id: b.id, title: b.text });
+    });
+    const active = this.state.active;
+    const scrollTo = (idd) => {
+      const el = document.querySelector('[data-anchor="' + idd + '"]');
+      if (el) { const y = el.getBoundingClientRect().top + window.scrollY - 92; window.scrollTo({ top: y, behavior: 'smooth' }); }
+    };
+    const tocVals = toc.map(t => {
+      const groupActive = t.id === active || t.items.some(s => s.id === active);
+      return {
+        title: t.title, id: t.id,
+        onClick: () => scrollTo(t.id),
+        style: { display: 'block', fontSize: 14, fontWeight: 600, marginBottom: 10, cursor: 'pointer', textDecoration: 'none', color: groupActive ? 'var(--accent)' : 'var(--text)' },
+        items: t.items.map(s => {
+          const on = s.id === active;
+          return {
+            title: s.title, id: s.id,
+            onClick: () => scrollTo(s.id),
+            style: { display: 'block', fontSize: 13.5, padding: '5px 0 5px 14px', marginLeft: -1, cursor: 'pointer', textDecoration: 'none',
+              borderLeft: '2px solid ' + (on ? 'var(--accent)' : 'transparent'),
+              color: on ? 'var(--accent)' : 'var(--muted)', fontWeight: on ? 600 : 500 },
+          };
+        }),
+      };
+    });
+
+    const q = this.state.search.trim().toLowerCase();
+    let results = [];
+    if (q) {
+      this._nav().forEach(g => g.items.forEach(it => {
+        if (it.label.toLowerCase().includes(q)) results.push({
+          label: it.label, group: g.label, icon: this.icon(it.icon, 16, 1.7),
+          onClick: (e) => { e.preventDefault(); this._go(it.id); this.setState({ search: '', showResults: false }); },
+        });
+      }));
+      results = results.slice(0, 8);
+    }
+
+    const site = (this.state.nav && this.state.nav.site) || {};
+
+    return {
+      theme: this.state.theme, accent,
+      brand: this.props.brandName || site.brand || 'Atrisos',
+      version: site.version || 'Version 2.0',
+      brandIcon: this.icon('book', 17, 1.7),
+      searchIcon: this.icon('search', 18, 1.7),
+      themeIcon: this.icon(this.state.theme === 'dark' ? 'sun' : 'moon', 18, 1.7),
+      chevIcon: this.icon('chev', 15, 2),
+      searchRef: this.searchRef, search: this.state.search,
+      onSearch: (e) => this.setState({ search: e.target.value, showResults: !!e.target.value }),
+      onSearchFocus: () => { if (this.state.search) this.setState({ showResults: true }); },
+      onSearchBlur: () => { setTimeout(() => this.setState({ showResults: false }), 160); },
+      showResults: this.state.showResults && results.length > 0, results,
+      toggleTheme: () => this.toggleTheme(),
+      onHome: (e) => { e.preventDefault(); this._go((this.state.nav && this.state.nav.defaultPage) || 'getting-started'); },
+      primaryNav, socials, navGroups,
+      page: { title: data.title, subtitle: data.subtitle, crumbs },
+      blocks, toc: tocVals,
+    };
+  }
+}
+</script>
+</body>
+</html>

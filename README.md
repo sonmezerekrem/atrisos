@@ -130,13 +130,18 @@ atrisos_net    <- shared Podman network
 
 ## Documentation
 
-- [Stack format and config.yml schema](docs/stack-format.md)
-- [Traefik integration and compose merge pipeline](docs/traefik.md)
-- [CLI reference](docs/cli-reference.md)
-- [Global config](docs/global-config.md)
-- [Installation and first run](docs/install.md)
-- [Init templates](docs/templates.md)
-- [AI agent prompt — generate stacks with any AI assistant](docs/agents/create-stack.md)
+Browse the docs site locally with `make docs-serve`, or read markdown in [`docs/content/`](docs/content/).
+
+| Topic | Page |
+|-------|------|
+| Getting started | [`docs/content/getting-started.md`](docs/content/getting-started.md) |
+| Installation | [`docs/content/install.md`](docs/content/install.md) |
+| Stack format and config.yml | [`docs/content/stack-format.md`](docs/content/stack-format.md) |
+| Traefik integration | [`docs/content/traefik.md`](docs/content/traefik.md) |
+| CLI reference | [`docs/content/cli-reference.md`](docs/content/cli-reference.md) |
+| Global config | [`docs/content/global-config.md`](docs/content/global-config.md) |
+| Init templates | [`docs/content/templates.md`](docs/content/templates.md) |
+| AI agent prompt | [`docs/content/agents/create-stack.md`](docs/content/agents/create-stack.md) |
 
 ---
 

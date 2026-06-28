@@ -1,0 +1,96 @@
+{
+  "site": {
+    "brand": "Atrisos",
+    "version": "Version 2.0",
+    "accent": "orange",
+    "defaultTheme": "light",
+    "github": "https://github.com/sonmezerekrem/atrisos",
+    "basePath": "/atrisos"
+  },
+  "defaultPage": "getting-started",
+  "groups": [
+    {
+      "label": "Introduction",
+      "items": [
+        {
+          "id": "getting-started",
+          "label": "Getting Started",
+          "icon": "info",
+          "description": "Overview of atrisos — CLI and TUI for Podman Compose stacks with automatic Traefik routing.",
+          "path": "getting-started.md"
+        },
+        {
+          "id": "install",
+          "label": "Installation",
+          "icon": "pin",
+          "description": "Install atrisos on macOS and Linux, first-run setup, and requirements.",
+          "path": "install.md"
+        }
+      ]
+    },
+    {
+      "label": "Core Concepts",
+      "items": [
+        {
+          "id": "design",
+          "label": "Design",
+          "icon": "grid",
+          "description": "Architecture, components, and key design decisions behind atrisos.",
+          "path": "design.md"
+        },
+        {
+          "id": "stack-format",
+          "label": "Stack Format",
+          "icon": "folder",
+          "description": "Stack folder layout, compose.yml rules, and config.yml schema.",
+          "path": "stack-format.md"
+        },
+        {
+          "id": "traefik",
+          "label": "Traefik",
+          "icon": "folder",
+          "description": "Managed Traefik setup, domain wiring, TLS modes, and compose merge pipeline.",
+          "path": "traefik.md"
+        }
+      ]
+    },
+    {
+      "label": "Reference",
+      "items": [
+        {
+          "id": "global-config",
+          "label": "Global Config",
+          "icon": "info",
+          "description": "Global atrisos configuration file schema at ~/.config/atrisos/config.yml.",
+          "path": "global-config.md"
+        },
+        {
+          "id": "cli-reference",
+          "label": "CLI Reference",
+          "icon": "info",
+          "description": "All atrisos CLI commands, flags, and exit codes.",
+          "path": "cli-reference.md"
+        },
+        {
+          "id": "templates",
+          "label": "Templates",
+          "icon": "folder",
+          "description": "Stack init templates — format, available templates, and how to add new ones.",
+          "path": "templates.md"
+        }
+      ]
+    },
+    {
+      "label": "Agents",
+      "items": [
+        {
+          "id": "agents/create-stack",
+          "label": "Create Stack (AI Agent)",
+          "icon": "users",
+          "description": "AI agent prompt for generating atrisos stacks — paste into any AI assistant.",
+          "path": "agents/create-stack.md"
+        }
+      ]
+    }
+  ]
+}
