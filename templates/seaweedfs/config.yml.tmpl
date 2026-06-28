@@ -1,0 +1,31 @@
+name: "{{.Name}}"
+description: "SeaweedFS object storage"
+tags:
+  - storage
+  - infrastructure
+meta: {}
+{{- if .domain}}
+
+domains:
+  - service: seaweedfs
+    host: "{{.domain}}"
+    port: 8888
+    tls: {{.tls}}
+{{- if .s3_domain}}
+  - service: seaweedfs
+    host: "{{.s3_domain}}"
+    port: 8333
+    tls: {{.tls}}
+{{- end}}
+{{- end}}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - seaweed_data

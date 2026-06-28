@@ -67,15 +67,6 @@ Atrisos merges Traefik labels into the compose document at runtime. Your `compos
 
 Run `atrisos init` to create a stack from a built-in template. Passwords and domains are auto-generated — press Enter to accept or type your own value.
 
-| Template | Description |
-|---|---|
-| `basic` | Single service with optional domain routing |
-| `postgres` | PostgreSQL 16 Alpine |
-| `valkey` | Valkey 8.1 (Redis-compatible) |
-| `mongo` | MongoDB 8 |
-| `wordpress` | WordPress + MySQL 8 with TLS |
-| `registry` | Private container image registry |
-
 ---
 
 ## Commands

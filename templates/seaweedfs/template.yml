@@ -1,0 +1,12 @@
+name: seaweedfs
+display: SeaweedFS
+description: Distributed object storage with S3 API and Filer web UI
+prompts:
+  - name: domain
+    label: "Filer web UI domain hostname"
+    type: string
+    generate: traefik_me_domain
+  - name: s3_domain
+    label: "S3 API domain (optional, leave blank to skip public routing)"
+    type: string
+    required: false

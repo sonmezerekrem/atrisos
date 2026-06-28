@@ -1,0 +1,13 @@
+services:
+  seaweedfs:
+    image: docker.io/chrislusf/seaweedfs:latest
+    command: server -dir=/data -s3 -filer
+    expose:
+      - "8333"
+      - "8888"
+    volumes:
+      - seaweed_data:/data
+    restart: unless-stopped
+
+volumes:
+  seaweed_data:

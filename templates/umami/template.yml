@@ -1,0 +1,24 @@
+name: umami
+display: Umami
+description: Privacy-focused web analytics with PostgreSQL
+prompts:
+  - name: domain
+    label: "Domain hostname"
+    type: string
+    generate: traefik_me_domain
+  - name: db_name
+    label: "Database name"
+    type: string
+    default: "umami"
+  - name: db_user
+    label: "Database user"
+    type: string
+    default: "umami"
+  - name: db_password
+    label: "Database password"
+    type: string
+    generate: random_password
+  - name: app_secret
+    label: "App secret (session signing key)"
+    type: string
+    generate: random_password

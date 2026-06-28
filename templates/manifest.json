@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-28T22:00:00Z",
+  "version": "2026-06-28T23:00:00Z",
   "templates": [
     {
       "name": "basic",
@@ -14,6 +14,12 @@
       "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/postgresql.png"
     },
     {
+      "name": "mysql",
+      "display": "MySQL 8",
+      "description": "Standalone MySQL 8 database with scheduled backups",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/mysql.png"
+    },
+    {
       "name": "valkey",
       "display": "Valkey 8.1",
       "description": "Valkey 8.1 key-value store (Redis-compatible) with persistence",
@@ -26,10 +32,34 @@
       "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/mongodb.png"
     },
     {
+      "name": "ghost",
+      "display": "Ghost",
+      "description": "Ghost blog with MySQL 8 and automatic TLS",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/ghost.png"
+    },
+    {
       "name": "wordpress",
       "display": "WordPress",
       "description": "WordPress with MySQL 8 and automatic TLS",
       "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/wordpress.png"
+    },
+    {
+      "name": "umami",
+      "display": "Umami",
+      "description": "Privacy-focused web analytics with PostgreSQL",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/umami.png"
+    },
+    {
+      "name": "minio",
+      "display": "MinIO",
+      "description": "S3-compatible object storage with web console",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/minio.png"
+    },
+    {
+      "name": "seaweedfs",
+      "display": "SeaweedFS",
+      "description": "Distributed object storage with S3 API and Filer web UI",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/ceph.png"
     },
     {
       "name": "registry",

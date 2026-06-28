@@ -1,0 +1,25 @@
+name: "{{.Name}}"
+description: "Umami analytics with PostgreSQL"
+tags:
+  - web
+  - analytics
+meta: {}
+{{- if .domain}}
+
+domains:
+  - service: umami
+    host: "{{.domain}}"
+    port: 3000
+    tls: {{.tls}}
+{{- end}}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - db_data

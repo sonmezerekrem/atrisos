@@ -1,0 +1,24 @@
+name: mysql
+display: MySQL 8
+description: Standalone MySQL 8 database with scheduled backups
+prompts:
+  - name: db_name
+    label: "Database name"
+    type: string
+    default: "app"
+  - name: db_user
+    label: "Database user"
+    type: string
+    default: "app"
+  - name: db_password
+    label: "Database password"
+    type: string
+    generate: random_password
+  - name: db_root_password
+    label: "MySQL root password"
+    type: string
+    generate: random_password
+  - name: external_port
+    label: "Host port to bind MySQL on"
+    type: int
+    default: "3306"

@@ -1,0 +1,26 @@
+name: "{{.Name}}"
+description: "Ghost blog with MySQL 8"
+tags:
+  - web
+  - cms
+meta: {}
+{{- if .domain}}
+
+domains:
+  - service: ghost
+    host: "{{.domain}}"
+    port: 2368
+    tls: {{.tls}}
+{{- end}}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - ghost_data
+    - db_data

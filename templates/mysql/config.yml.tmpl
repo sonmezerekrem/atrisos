@@ -1,0 +1,16 @@
+name: "{{.Name}}"
+description: "MySQL 8"
+tags:
+  - database
+meta: {}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - db_data

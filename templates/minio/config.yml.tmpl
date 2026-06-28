@@ -1,0 +1,31 @@
+name: "{{.Name}}"
+description: "MinIO S3-compatible object storage"
+tags:
+  - storage
+  - infrastructure
+meta: {}
+{{- if .domain}}
+
+domains:
+  - service: minio
+    host: "{{.domain}}"
+    port: 9000
+    tls: {{.tls}}
+{{- if .console_domain}}
+  - service: minio
+    host: "{{.console_domain}}"
+    port: 9001
+    tls: {{.tls}}
+{{- end}}
+{{- end}}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - minio_data

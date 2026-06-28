@@ -1,0 +1,20 @@
+name: minio
+display: MinIO
+description: S3-compatible object storage with web console
+prompts:
+  - name: domain
+    label: "S3 API domain hostname"
+    type: string
+    generate: traefik_me_domain
+  - name: console_domain
+    label: "Web console domain (optional, leave blank to skip public routing)"
+    type: string
+    required: false
+  - name: root_user
+    label: "Root access key"
+    type: string
+    default: "minioadmin"
+  - name: root_password
+    label: "Root secret key"
+    type: string
+    generate: random_password
