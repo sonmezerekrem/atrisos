@@ -10,12 +10,28 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
         with:
           go-version-file: app/go.mod
           cache: true
           cache-dependency-path: app/go.sum
       - run: cd app && go build ./...
       - run: cd app && go vet ./...
-      - run: cd app && go test ./internal/...
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: app/go.mod
+          cache: true
+          cache-dependency-path: app/go.sum
+      - name: Run tests with coverage
+        run: cd app && go test -race -coverprofile=coverage.out -covermode=atomic ./internal/...
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v7
+        with:
+          files: app/coverage.out
+          flags: unittests
