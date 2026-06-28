@@ -3,7 +3,8 @@ project_name: atrisos
 
 before:
   hooks:
-    - go mod tidy
+    - cmd: go mod tidy
+      dir: app
 
 builds:
   - dir: app
