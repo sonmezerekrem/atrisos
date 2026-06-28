@@ -8,7 +8,7 @@ domains:
   - service: "web"
     host: "{{.domain}}"
     port: {{.port}}
-    tls: true
+    tls: {{.tls}}
 {{- end}}
 
 update:

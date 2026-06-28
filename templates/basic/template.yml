@@ -13,4 +13,4 @@ prompts:
   - name: domain
     label: "Domain hostname (leave blank to skip Traefik routing)"
     type: string
-    required: false
+    generate: traefik_me_domain

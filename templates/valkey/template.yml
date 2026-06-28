@@ -2,6 +2,10 @@ name: valkey
 display: Valkey 8.1
 description: Valkey 8.1 key-value store (Redis-compatible) with persistence
 prompts:
+  - name: valkey_password
+    label: "Valkey password"
+    type: string
+    generate: random_password
   - name: external_port
     label: "Host port to bind Valkey on"
     type: int

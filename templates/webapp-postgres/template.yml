@@ -11,10 +11,14 @@ prompts:
     type: int
     default: "3000"
   - name: domain
-    label: "Domain hostname (leave blank to skip Traefik routing)"
+    label: "Domain hostname"
     type: string
-    required: false
+    generate: traefik_me_domain
   - name: db_name
     label: "PostgreSQL database name"
     type: string
     default: "app"
+  - name: db_password
+    label: "Database password"
+    type: string
+    generate: random_password

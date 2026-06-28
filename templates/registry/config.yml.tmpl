@@ -3,12 +3,14 @@ description: "Private container image registry"
 tags:
   - infrastructure
 meta: {}
+{{- if .domain}}
 
 domains:
   - service: registry
     host: "{{.domain}}"
     port: 5000
-    tls: true
+    tls: {{.tls}}
+{{- end}}
 
 update:
   mode: manual

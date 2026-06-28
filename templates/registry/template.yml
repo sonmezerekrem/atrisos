@@ -3,6 +3,10 @@ display: Docker Registry
 description: Private container image registry (registry:2) with TLS via Traefik
 prompts:
   - name: domain
-    label: "Registry domain (e.g. registry.example.com)"
+    label: "Registry domain"
     type: string
-    required: true
+    generate: traefik_me_domain
+  - name: registry_secret
+    label: "Registry HTTP secret"
+    type: string
+    generate: random_password

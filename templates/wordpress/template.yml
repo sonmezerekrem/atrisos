@@ -3,9 +3,9 @@ display: WordPress
 description: WordPress with MySQL 8 and automatic TLS
 prompts:
   - name: domain
-    label: "Domain hostname (e.g. blog.example.com)"
+    label: "Domain hostname"
     type: string
-    required: true
+    generate: traefik_me_domain
   - name: db_name
     label: "WordPress database name"
     type: string
@@ -14,3 +14,11 @@ prompts:
     label: "WordPress database user"
     type: string
     default: "wordpress"
+  - name: db_password
+    label: "Database password"
+    type: string
+    generate: random_password
+  - name: db_root_password
+    label: "MySQL root password"
+    type: string
+    generate: random_password

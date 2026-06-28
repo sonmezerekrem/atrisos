@@ -10,6 +10,10 @@ prompts:
     label: "Database user"
     type: string
     default: "app"
+  - name: db_password
+    label: "Database password"
+    type: string
+    generate: random_password
   - name: external_port
     label: "Host port to bind PostgreSQL on"
     type: int

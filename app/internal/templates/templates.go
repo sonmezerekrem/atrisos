@@ -13,12 +13,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const (
-	RepoOwner     = "sonmezerekrem"
-	RepoName      = "atrisos"
-	Branch        = "main"
-	TargetVersion = "0.17.3" // not used here, just for reference
-)
+const BaseURL = "https://atrisos-templates.sonmezerekrem.com"
 
 // cacheDir returns ~/.config/atrisos/templates-cache
 func cacheDir() string {
@@ -29,22 +24,8 @@ func cacheDir() string {
 	return filepath.Join(home, ".config", "atrisos", "templates-cache")
 }
 
-// manifestURL returns the raw GitHub URL for templates/manifest.json
-func manifestURL() string {
-	return fmt.Sprintf(
-		"https://raw.githubusercontent.com/%s/%s/%s/templates/manifest.json",
-		RepoOwner, RepoName, Branch,
-	)
-}
-
-// rawURL returns the raw GitHub URL for a template file
-// e.g. templates/<name>/template.yml
-func rawURL(relPath string) string {
-	return fmt.Sprintf(
-		"https://raw.githubusercontent.com/%s/%s/%s/templates/%s",
-		RepoOwner, RepoName, Branch, relPath,
-	)
-}
+func manifestURL() string            { return BaseURL + "/manifest.json" }
+func rawURL(relPath string) string    { return BaseURL + "/" + relPath }
 
 // Manifest is the index of available templates.
 type Manifest struct {
@@ -71,10 +52,11 @@ type TemplateMeta struct {
 type Prompt struct {
 	Name     string   `yaml:"name"`
 	Label    string   `yaml:"label"`
-	Type     string   `yaml:"type"`    // "string" | "int" | "bool" | "select"
+	Type     string   `yaml:"type"`     // "string" | "int" | "bool" | "select"
 	Default  string   `yaml:"default"`
 	Required bool     `yaml:"required"`
-	Options  []string `yaml:"options"` // for type "select"
+	Options  []string `yaml:"options"`  // for type "select"
+	Generate string   `yaml:"generate"` // "random_password" | "traefik_me_domain"
 }
 
 // httpClient is the shared HTTP client with a 10s timeout.

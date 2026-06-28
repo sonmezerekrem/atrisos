@@ -10,6 +10,10 @@ prompts:
     label: "Root username"
     type: string
     default: "app"
+  - name: db_password
+    label: "Root password"
+    type: string
+    generate: random_password
   - name: external_port
     label: "Host port to bind MongoDB on"
     type: int

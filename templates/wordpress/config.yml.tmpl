@@ -4,12 +4,14 @@ tags:
   - web
   - cms
 meta: {}
+{{- if .domain}}
 
 domains:
   - service: wordpress
     host: "{{.domain}}"
     port: 80
-    tls: true
+    tls: {{.tls}}
+{{- end}}
 
 update:
   mode: manual

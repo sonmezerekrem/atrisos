@@ -2,7 +2,10 @@ package cmd
 
 import (
 	"bufio"
+	"crypto/rand"
+	"encoding/hex"
 	"fmt"
+	"math/big"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -30,7 +33,6 @@ var initCmd = &cobra.Command{
 }
 
 func runInit(cmd *cobra.Command, args []string) error {
-	// --list-templates: print table and exit.
 	if initListTemplates {
 		manifest, err := templates.LoadManifest()
 		if err != nil {
@@ -44,9 +46,8 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return nil
 	}
 
-	// --refresh-templates: re-download and exit.
 	if initRefreshTemplates {
-		fmt.Println("→ Refreshing template cache from GitHub...")
+		fmt.Println("→ Refreshing template cache...")
 		if err := templates.RefreshCache(); err != nil {
 			return fmt.Errorf("refreshing templates: %w", err)
 		}
@@ -111,15 +112,24 @@ func runInit(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("loading template %q: %w", chosenTemplate, err)
 	}
 
-	// Build template vars with built-in variables.
 	vars := map[string]interface{}{
 		"Name":    name,
 		"DirName": dirName,
 	}
 
-	// Run wizard: collect answers for each prompt.
 	fmt.Println()
 	for _, p := range meta.Prompts {
+		// Pre-generate value if requested (done once, before the retry loop).
+		generated := ""
+		if p.Generate != "" {
+			switch p.Generate {
+			case "random_password":
+				generated = randomPassword(24)
+			case "traefik_me_domain":
+				generated = fmt.Sprintf("%s-%s.traefik.me", dirName, randomHex(4))
+			}
+		}
+
 		for {
 			promptStr := p.Label
 			switch p.Type {
@@ -136,7 +146,9 @@ func runInit(cmd *cobra.Command, args []string) error {
 					promptStr += fmt.Sprintf(" [%s]", p.Default)
 				}
 			default:
-				if p.Default != "" {
+				if generated != "" {
+					promptStr += fmt.Sprintf(" [auto: %s]", generated)
+				} else if p.Default != "" {
 					promptStr += fmt.Sprintf(" [%s]", p.Default)
 				} else if !p.Required {
 					promptStr += " (optional)"
@@ -150,9 +162,10 @@ func runInit(cmd *cobra.Command, args []string) error {
 			}
 			line = strings.TrimSpace(line)
 
-			// Apply default if user hit enter with empty input.
 			if line == "" {
-				if p.Default != "" {
+				if generated != "" {
+					line = generated
+				} else if p.Default != "" {
 					line = p.Default
 				} else if p.Required {
 					fmt.Println("  (required — please enter a value)")
@@ -160,7 +173,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 				}
 			}
 
-			// Validate and store by type.
 			switch p.Type {
 			case "bool":
 				lower := strings.ToLower(line)
@@ -193,10 +205,20 @@ func runInit(cmd *cobra.Command, args []string) error {
 				}
 				vars[p.Name] = line
 
-			default: // string
+			default:
 				vars[p.Name] = line
 			}
 			break
+		}
+	}
+
+	// Derive tls from domain: free/wildcard DNS services don't support real certs.
+	if domain, ok := vars["domain"].(string); ok {
+		if domain == "" || strings.HasSuffix(domain, ".traefik.me") ||
+			strings.HasSuffix(domain, ".nip.io") || strings.HasSuffix(domain, ".sslip.io") {
+			vars["tls"] = "false"
+		} else {
+			vars["tls"] = "true"
 		}
 	}
 
@@ -210,18 +232,15 @@ func runInit(cmd *cobra.Command, args []string) error {
 		outDir = filepath.Join(cfg.StacksRoot, dirName)
 	}
 
-	// Create the stack directory.
 	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", outDir, err)
 	}
 
-	// List cached .tmpl files for this template.
 	tmplFiles, err := templates.TemplateFiles(chosenTemplate)
 	if err != nil {
 		return fmt.Errorf("listing template files for %q: %w", chosenTemplate, err)
 	}
 
-	// Render and write each template file.
 	for _, fname := range tmplFiles {
 		content, err := templates.ReadTemplateFile(chosenTemplate, fname)
 		if err != nil {
@@ -233,7 +252,6 @@ func runInit(cmd *cobra.Command, args []string) error {
 			return fmt.Errorf("parsing template %s: %w", fname, err)
 		}
 
-		// Strip the .tmpl suffix; keep leading dots (e.g. .env.tmpl → .env).
 		outName := strings.TrimSuffix(fname, ".tmpl")
 		outPath := filepath.Join(outDir, outName)
 
@@ -249,17 +267,31 @@ func runInit(cmd *cobra.Command, args []string) error {
 		f.Close()
 	}
 
-	fmt.Printf("\n✓ Stack created at %s\n", outDir)
-	fmt.Println()
+	fmt.Printf("\n✓ Stack created at %s\n\n", outDir)
 	fmt.Println("Next steps:")
-	fmt.Printf("  1. Edit %s/.env with your values\n", outDir)
+	fmt.Printf("  1. Review %s/.env — passwords have been auto-generated\n", outDir)
 	fmt.Printf("  2. Run: atrisos up %s\n", dirName)
 
 	return nil
 }
 
-// slug converts a name to a URL-safe directory slug: lowercase, non-alphanumeric
-// runs (except hyphens) replaced with a single hyphen, leading/trailing hyphens trimmed.
+const passwordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+
+func randomPassword(n int) string {
+	b := make([]byte, n)
+	for i := range b {
+		idx, _ := rand.Int(rand.Reader, big.NewInt(int64(len(passwordChars))))
+		b[i] = passwordChars[idx.Int64()]
+	}
+	return string(b)
+}
+
+func randomHex(n int) string {
+	b := make([]byte, n)
+	rand.Read(b)
+	return hex.EncodeToString(b)
+}
+
 func slug(s string) string {
 	s = strings.ToLower(s)
 	re := regexp.MustCompile(`[^a-z0-9-]+`)
@@ -276,6 +308,6 @@ func init() {
 	initCmd.Flags().BoolVar(&initListTemplates, "list-templates", false,
 		"list available templates and exit")
 	initCmd.Flags().BoolVar(&initRefreshTemplates, "refresh-templates", false,
-		"re-download all templates from GitHub then exit")
+		"re-download all templates then exit")
 	rootCmd.AddCommand(initCmd)
 }
