@@ -29,9 +29,22 @@ jobs:
           cache: true
           cache-dependency-path: app/go.sum
       - name: Run tests with coverage
-        run: cd app && go test -race -coverprofile=coverage.out -covermode=atomic ./internal/...
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v7
+        run: |
+          cd app
+          go test -race -coverprofile=coverage.out -covermode=atomic ./internal/...
+          go tool cover -func=coverage.out
+      - name: Write coverage summary
+        run: |
+          cd app
+          echo "## Test Coverage" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          go tool cover -func=coverage.out >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+      - name: Generate HTML coverage report
+        run: cd app && go tool cover -html=coverage.out -o coverage.html
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
         with:
-          files: app/coverage.out
-          flags: unittests
+          name: coverage-report
+          path: app/coverage.html
+          retention-days: 14
