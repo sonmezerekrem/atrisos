@@ -1,3 +1,11 @@
+---
+title: Create Stack (AI Agent)
+group: Agents
+order: 1
+icon: users
+description: AI agent prompt for generating atrisos stacks — paste into any AI assistant.
+---
+
 # Atrisos Stack Creator — AI Agent Prompt
 
 Copy everything below this line and paste it into your AI assistant (Claude, ChatGPT, Gemini, etc.) followed by your request. The agent will generate a ready-to-use Atrisos stack.
