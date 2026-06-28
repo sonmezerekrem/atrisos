@@ -1,4 +1,4 @@
 atrisos
 dist/
 *.tar.gz
-.claude/
+.claude/worktrees/
