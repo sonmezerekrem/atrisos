@@ -15,32 +15,33 @@ make install        # builds + installs to /usr/local/bin
 make lint           # go vet ./...
 make build-all      # cross-compile all four targets to dist/
 
-go test ./internal/...   # run all tests (84 tests, no integration setup needed)
-go vet ./...
+go test ./app/internal/...   # run all tests (84 tests, no integration setup needed)
+go vet ./app/...
 ```
 
-The `Version` variable is injected via ldflags: `-X github.com/sonmezerekrem/atrisos/cmd.Version=$(VERSION)`.
+The `Version` variable is injected via ldflags: `-X github.com/sonmezerekrem/atrisos/app/cmd.Version=$(VERSION)`.
 
 ## Directory layout
 
 ```
-main.go                  # calls cmd.Execute()
-cmd/                     # cobra commands, one file per subcommand group
-internal/
-  config/                # global config: ~/.config/atrisos/config.yml
-  registry/              # registry.json — root dir + extra registered paths
-  stack/                 # Stack struct, loader, discovery, types
-  compose/               # compose merge pipeline + podman compose runner
-  traefik/               # label generation, network, managed Traefik stack
-  podman/                # machine management (macOS) + container status polling
-  backup/                # restic backup invocation
-  restic/                # auto-download restic binary to ~/.config/atrisos/bin/
-  scheduler/             # systemd timers (Linux) + launchd plists (macOS)
-  notify/                # webhook POST on events
-  outdated/              # compare local vs remote image digests
-  selfupdate/            # GitHub release fetch + atomic binary replace
-  templates/             # fetch templates from GitHub, local cache management
-tui/                     # bubbletea TUI (app.go, stacklist.go, detail.go, logs.go, styles.go)
+app/                     # all Go source code
+  main.go                # calls cmd.Execute()
+  cmd/                   # cobra commands, one file per subcommand group
+  internal/
+    config/              # global config: ~/.config/atrisos/config.yml
+    registry/            # registry.json — root dir + extra registered paths
+    stack/               # Stack struct, loader, discovery, types
+    compose/             # compose merge pipeline + podman compose runner
+    traefik/             # label generation, network, managed Traefik stack
+    podman/              # machine management (macOS) + container status polling
+    backup/              # restic backup invocation
+    restic/              # auto-download restic binary to ~/.config/atrisos/bin/
+    scheduler/           # systemd timers (Linux) + launchd plists (macOS)
+    notify/              # webhook POST on events
+    outdated/            # compare local vs remote image digests
+    selfupdate/          # GitHub release fetch + atomic binary replace
+    templates/           # fetch templates from GitHub, local cache management
+  tui/                   # bubbletea TUI (app.go, stacklist.go, detail.go, logs.go, styles.go)
 docs/                    # architecture and user documentation
 templates/               # bundled init templates (manifest.json + per-template dirs)
 scripts/install.sh       # curl-pipe installer
