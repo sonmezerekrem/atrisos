@@ -150,3 +150,9 @@ cd app && go test ./internal/... # run tests
 ```
 
 Go 1.26+ required.
+
+---
+
+## License
+
+[MIT](LICENSE)
