@@ -20,13 +20,13 @@ templates/
 │   ├── config.yml.tmpl    # Go text/template for config.yml
 │   ├── .env.tmpl          # Go text/template for .env
 │   └── .env.example.tmpl  # Go text/template for .env.example
-└── webapp-postgres/
+└── postgres/
     └── ...
 ```
 
 ## manifest.json
 
-Lists all available templates with display names and descriptions shown in the `atrisos init` wizard.
+Lists all available templates with display names, descriptions, and `iconUrl` (direct image URL for the docs template grid).
 
 ```json
 {
@@ -35,7 +35,8 @@ Lists all available templates with display names and descriptions shown in the `
     {
       "name": "basic",
       "display": "Basic",
-      "description": "Single service with optional domain routing"
+      "description": "Single service with optional domain routing",
+      "iconUrl": "https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/nginx.png"
     }
   ]
 }

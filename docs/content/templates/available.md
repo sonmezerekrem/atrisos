@@ -9,22 +9,12 @@ description: Built-in stack init templates shipped with atrisos.
 
 # Available Templates
 
-These templates are defined in `templates/manifest.json` in the repository.
-
-| Template | Description |
-|----------|-------------|
-| `basic` | Single service with optional domain routing |
-| `webapp-postgres` | Web service backed by PostgreSQL with backup enabled |
-| `postgres` | Standalone PostgreSQL 16 Alpine database with scheduled backups |
-| `valkey` | Valkey 8.1 key-value store (Redis-compatible) with persistence |
-| `mongo` | MongoDB 8 document database with scheduled backups |
-| `wordpress` | WordPress with MySQL 8 and automatic TLS |
-| `registry` | Private container image registry (registry:2) with TLS via Traefik |
+Browse built-in init templates below. Each card shows the template name, description, and the `--template` id used with `atrisos init`.
 
 ## Using a specific template
 
 ```sh
-atrisos init myapp --template webapp-postgres
+atrisos init myapp --template wordpress
 ```
 
 The wizard still prompts for template-specific values (domains, passwords, ports) with sensible auto-generated defaults.

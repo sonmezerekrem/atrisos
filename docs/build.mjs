@@ -18,6 +18,8 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CONTENT_DIR = path.join(__dirname, "content");
 const OUT_FILE = path.join(__dirname, "nav.json");
+const MANIFEST_FILE = path.join(__dirname, "..", "templates", "manifest.json");
+const TEMPLATES_OUT = path.join(__dirname, "templates.json");
 
 const SITE = {
   brand: "Atrisos",
@@ -92,6 +94,25 @@ function groupRank(sectionId, label) {
   return i === -1 ? order.length : i;
 }
 
+function buildTemplates() {
+  if (!fs.existsSync(MANIFEST_FILE)) {
+    console.warn(`templates manifest not found: ${MANIFEST_FILE}`);
+    return;
+  }
+  const manifest = JSON.parse(fs.readFileSync(MANIFEST_FILE, "utf8"));
+  const out = {
+    version: manifest.version || "",
+    templates: (manifest.templates || []).map((t) => ({
+      name: t.name,
+      display: t.display || t.name,
+      description: t.description || "",
+      iconUrl: t.iconUrl || "",
+    })),
+  };
+  fs.writeFileSync(TEMPLATES_OUT, JSON.stringify(out, null, 2) + "\n");
+  console.log(`Wrote ${TEMPLATES_OUT} (${out.templates.length} templates)`);
+}
+
 function main() {
   if (!fs.existsSync(CONTENT_DIR)) {
     console.error(`content directory not found: ${CONTENT_DIR}`);
@@ -156,6 +177,7 @@ function main() {
   };
 
   fs.writeFileSync(OUT_FILE, JSON.stringify(nav, null, 2) + "\n");
+  buildTemplates();
   const pageCount = pages.length;
   console.log(`Wrote ${OUT_FILE} (${pageCount} pages, ${sections.length} sections)`);
 }

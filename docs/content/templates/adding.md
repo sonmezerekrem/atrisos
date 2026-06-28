@@ -12,7 +12,7 @@ description: How to create and submit a new init template.
 1. Create a new directory under `templates/<name>/`.
 2. Add `template.yml` with prompts.
 3. Add `.tmpl` files for each file to generate (`compose.yml.tmpl`, `config.yml.tmpl`, `.env.tmpl`, `.env.example.tmpl`).
-4. Update `templates/manifest.json` with the new entry and a new `version` timestamp.
+4. Update `templates/manifest.json` with the new entry (`display`, `description`, `iconUrl` — a direct image URL for the docs grid) and a new `version` timestamp.
 5. Open a pull request — once merged to `main`, the template is available to all users on next cache refresh.
 
 ## Checklist

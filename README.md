@@ -70,7 +70,6 @@ Run `atrisos init` to create a stack from a built-in template. Passwords and dom
 | Template | Description |
 |---|---|
 | `basic` | Single service with optional domain routing |
-| `webapp-postgres` | Web service + PostgreSQL with backup |
 | `postgres` | PostgreSQL 16 Alpine |
 | `valkey` | Valkey 8.1 (Redis-compatible) |
 | `mongo` | MongoDB 8 |

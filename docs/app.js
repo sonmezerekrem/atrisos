@@ -19,9 +19,12 @@
         current: "",
         pages: {},
         search: "",
-        showResults: false,
-        active: "",
-      };
+      showResults: false,
+      active: "",
+      templateSearch: "",
+      templateCopied: "",
+      templatesList: [],
+    };
     }
 
     componentDidMount() {
@@ -257,6 +260,72 @@
       return E("hr", { style: { border: "none", borderTop: "1px solid var(--border)", margin: "32px 0" } });
     }
 
+    _copyTemplateCmd(name) {
+      const cmd = "atrisos init myapp --template " + name;
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(cmd).then(() => {
+          this.setState({ templateCopied: name });
+          setTimeout(() => this.setState({ templateCopied: "" }), 1600);
+        }).catch(() => {});
+      }
+    }
+
+    _templateCard(t) {
+      const copied = this.state.templateCopied === t.name;
+      return E("div", {
+        key: t.name,
+        className: "tpl-card",
+        role: "button",
+        tabIndex: 0,
+        onClick: () => this._copyTemplateCmd(t.name),
+        onKeyDown: (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); this._copyTemplateCmd(t.name); } },
+      },
+        E("div", { className: "tpl-card-head" },
+          E("div", { className: "tpl-logo" },
+            t.iconUrl
+              ? E("img", { src: t.iconUrl, alt: "", width: 28, height: 28, loading: "lazy" })
+              : E("span", { style: { fontSize: 20, color: "var(--faint)" } }, "◫")),
+          E("div", { style: { minWidth: 0 } },
+            E("h3", { className: "tpl-title" }, t.display),
+            E("p", { className: "tpl-desc" }, t.description))),
+        E("div", { className: "tpl-foot" },
+          E("span", { className: "tpl-id" }, t.name),
+          E("span", { className: "tpl-copy" }, copied ? "Copied!" : "Click to copy init command")));
+    }
+
+    _templateGallery(templates) {
+      const q = (this.state.templateSearch || "").trim().toLowerCase();
+      const filtered = (templates || []).filter((t) => {
+        if (!q) return true;
+        const hay = (t.name + " " + t.display + " " + t.description).toLowerCase();
+        return hay.includes(q);
+      });
+      return E("div", { style: { maxWidth: "100%", margin: "0 0 12px" } },
+        E("div", { className: "tpl-toolbar" },
+          E("input", {
+            className: "tpl-search",
+            type: "search",
+            value: this.state.templateSearch || "",
+            onChange: (e) => this.setState({ templateSearch: e.target.value }),
+            placeholder: "Search templates…",
+          }),
+          E("span", { className: "tpl-count" }, filtered.length + " of " + (templates || []).length + " templates")),
+        filtered.length
+          ? E("div", { className: "tpl-grid" }, filtered.map((t) => this._templateCard(t)))
+          : E("div", { className: "tpl-empty" }, "No templates match your search."));
+    }
+
+    async _loadTemplates() {
+      try {
+        const res = await fetch("./templates.json");
+        if (!res.ok) return [];
+        const data = await res.json();
+        return data.templates || [];
+      } catch (_) {
+        return [];
+      }
+    }
+
     async _ensurePage(id) {
       if (this.state.pages[id]) return;
       const found = this._find(id);
@@ -266,12 +335,17 @@
         if (!res.ok) throw new Error("Failed to load " + found.item.path);
         const raw = await res.text();
         const { meta, body } = this._parseFrontmatter(raw);
+        let blocks = this._markdownToBlocks(body);
+        let templatesList = this.state.templatesList;
+        if (id === "templates/available") {
+          templatesList = await this._loadTemplates();
+        }
         const page = {
           title: meta.title || found.item.label,
           subtitle: meta.description || found.item.description || "",
-          blocks: this._markdownToBlocks(body),
+          blocks,
         };
-        this.setState({ pages: { ...this.state.pages, [id]: page } }, () => setTimeout(() => this._spy(), 60));
+        this.setState({ pages: { ...this.state.pages, [id]: page }, templatesList }, () => setTimeout(() => this._spy(), 60));
       } catch (e) {
         this.setState({
           pages: {
@@ -368,6 +442,17 @@
       if (b.isP) return E("p", { key: i, style: { fontSize: "16.5px", lineHeight: 1.72, color: "var(--muted)", margin: "0 0 18px", maxWidth: 760 } }, b.text);
       if (b.isNode) return E("div", { key: i }, b.node);
       return null;
+    }
+
+    _renderContentBlocks(cur, blocks) {
+      const out = [];
+      blocks.forEach((b, i) => {
+        out.push(this._renderBlock(b, i));
+        if (cur === "templates/available" && i === 0 && this.state.templatesList.length) {
+          out.push(this._templateGallery(this.state.templatesList));
+        }
+      });
+      return out;
     }
 
     render() {
@@ -504,7 +589,7 @@
                 E("span", { style: { fontSize: 14, color: "var(--accent)", fontWeight: 600, whiteSpace: "nowrap" } }, found ? found.item.label : data.title)),
               E("h1", { style: { fontSize: 42, fontWeight: 800, letterSpacing: "-.03em", lineHeight: 1.08, margin: "0 0 16px", color: "var(--text)" } }, data.title),
               E("p", { style: { fontSize: 18.5, lineHeight: 1.55, color: "var(--muted)", margin: "0 0 12px", maxWidth: 760 } }, data.subtitle),
-              data.blocks.map((b, i) => this._renderBlock(b, i))),
+              this._renderContentBlocks(cur, data.blocks)),
 
             E("aside", { className: "dfy-scroll", style: { position: "sticky", top: 73, maxHeight: "calc(100vh - 73px)", overflowY: "auto", padding: "38px 40px 60px 24px" } },
               E("div", { style: { fontSize: 14, fontWeight: 700, color: "var(--text)", marginBottom: 18 } }, "On this page"),
