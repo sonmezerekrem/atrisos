@@ -21,7 +21,7 @@ description: Short summary shown under the page title.
 | `title` | no | Page title (defaults to first `#` heading) |
 | `group` | no | Sidebar group name (default: `Documentation`) |
 | `order` | no | Sort order within the group |
-| `icon` | no | Sidebar icon: `info`, `pin`, `grid`, `folder`, `users`, `flag` |
+| `icon` | no | Sidebar icon key (Hugeicons stroke): `info`, `pin`, `grid`, `folder`, `users`, `flag` |
 | `description` | no | Subtitle under the page title |
 | `id` | no | URL hash id (default: file path without `.md`) |
 
