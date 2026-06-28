@@ -1,7 +1,7 @@
 # atrisos — CLAUDE.md
 
 Go module: `github.com/sonmezerekrem/atrisos`  
-Go version: 1.24.2
+Go version: 1.26
 
 ## What this project is
 
