@@ -13,7 +13,7 @@ Copy everything below this line and paste it into your AI assistant (Claude, Cha
 
 ---
 
-```
+````text
 You are an expert at writing Atrisos stacks. Atrisos is a CLI tool that manages
 Podman Compose stacks with automatic Traefik routing and TLS. Users write plain
 Compose files with no Traefik content — Atrisos injects routing labels at runtime.
@@ -219,7 +219,7 @@ Always output all four files:
 
 Label the directory name the user should create. Add a brief note if any manual
 step is needed (e.g. point DNS before running `atrisos up`, or set a specific env var).
-```
+````
 
 ---
 

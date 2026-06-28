@@ -156,6 +156,23 @@
         .replace(/\[(.+?)\]\(.+?\)/g, "$1");
     }
 
+    _renderInline(tokens) {
+      if (!tokens || !tokens.length) return "";
+      return tokens.map((t, i) => {
+        if (t.type === "text") return t.raw || t.text || "";
+        if (t.type === "strong") return E("strong", { key: i }, this._renderInline(t.tokens));
+        if (t.type === "em") return E("em", { key: i }, this._renderInline(t.tokens));
+        if (t.type === "codespan") return E("code", { key: i, style: { fontFamily: MONO, fontSize: "0.9em", background: "var(--pill)", padding: "1px 5px", borderRadius: 4 } }, t.text);
+        if (t.type === "link") return E("a", { key: i, href: t.href, style: { color: "var(--accent)" } }, this._renderInline(t.tokens));
+        return t.raw || t.text || "";
+      });
+    }
+
+    _paragraphNode(tok) {
+      const children = tok.tokens ? this._renderInline(tok.tokens) : this._inline(tok.text);
+      return E("p", { style: { fontSize: "16.5px", lineHeight: 1.72, color: "var(--muted)", margin: "0 0 18px", maxWidth: 760 } }, children);
+    }
+
     _markdownToBlocks(body) {
       if (!window.marked) return [{ isP: true, text: "Markdown renderer failed to load." }];
       const blocks = [];
@@ -175,12 +192,14 @@
           else if (tok.depth === 3) blocks.push({ isH3: true, text, id });
           else blocks.push({ isNode: true, node: this._headingNode(Math.min(tok.depth, 4), text, id) });
         } else if (tok.type === "paragraph") {
-          blocks.push({ isP: true, text: this._inline(tok.text) });
+          blocks.push({ isNode: true, node: this._paragraphNode(tok) });
         } else if (tok.type === "code") {
-          blocks.push({ isNode: true, node: this.codeCard(tok.lang || "snippet-" + ++codeIdx, tok.text.split("\n")) });
+          const lines = tok.text.split("\n");
+          const label = tok.lang || "snippet-" + ++codeIdx;
+          blocks.push({ isNode: true, node: this.codeCard(label, lines, { tall: lines.length > 30 || tok.text.length > 1500 }) });
         } else if (tok.type === "blockquote") {
-          const inner = (tok.tokens || []).filter((t) => t.type === "paragraph").map((t) => this._inline(t.text)).join(" ");
-          if (inner) blocks.push({ isNode: true, node: this._quoteNode(inner) });
+          const inner = (tok.tokens || []).filter((t) => t.type === "paragraph").map((t) => this._paragraphNode(t));
+          if (inner.length) blocks.push({ isNode: true, node: E("div", { style: { margin: "0 0 18px", maxWidth: 760 } }, inner) });
         } else if (tok.type === "list") {
           blocks.push({ isNode: true, node: this._listNode(tok) });
         } else if (tok.type === "table") {
@@ -213,7 +232,7 @@
       const Tag = tok.ordered ? "ol" : "ul";
       return E(Tag, {
         style: { fontSize: "16.5px", lineHeight: 1.72, color: "var(--muted)", margin: "0 0 18px", paddingLeft: "1.4em", maxWidth: 760 },
-      }, tok.items.map((it, i) => E("li", { key: i, style: { margin: "6px 0" } }, this._inline(it.text))));
+      }, tok.items.map((it, i) => E("li", { key: i, style: { margin: "6px 0" } }, it.tokens ? this._renderInline(it.tokens) : this._inline(it.text))));
     }
 
     _tableNode(tok) {
@@ -311,8 +330,20 @@
       return out;
     }
 
-    codeCard(filename, lines) {
-      return E("div", { style: { background: "var(--code-bg)", border: "1px solid var(--border-strong)", borderRadius: 12, padding: "18px 20px", overflow: "hidden", fontFamily: MONO, margin: "0 0 22px", maxWidth: 760 } },
+    codeCard(filename, lines, opts) {
+      opts = opts || {};
+      const wrap = {
+        background: "var(--code-bg)",
+        border: "1px solid var(--border-strong)",
+        borderRadius: 12,
+        padding: "18px 20px",
+        overflow: "auto",
+        fontFamily: MONO,
+        margin: "0 0 22px",
+        maxWidth: "100%",
+      };
+      if (opts.tall) wrap.maxHeight = "min(70vh, 720px)";
+      return E("div", { style: wrap },
         E("div", { style: { fontFamily: MONO, fontSize: 13, fontWeight: 600, color: "var(--accent)" } }, filename),
         E("div", { style: { width: 34, height: 2, background: "var(--accent)", borderRadius: 2, margin: "9px 0 15px", opacity: 0.85 } }),
         lines.map((ln, i) => E("div", { key: i, style: { fontFamily: MONO, fontSize: 13.5, lineHeight: 1.85, whiteSpace: "pre" } }, ...this.highlight(ln))));
