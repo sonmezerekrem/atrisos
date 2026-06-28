@@ -1,15 +1,19 @@
 package cmd
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/sonmezerekrem/atrisos/internal/config"
 	"github.com/sonmezerekrem/atrisos/internal/podman"
 	"github.com/sonmezerekrem/atrisos/internal/registry"
 	"github.com/sonmezerekrem/atrisos/tui"
 	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 // Package-level state populated by PersistentPreRunE and used by subcommands.
@@ -133,6 +137,17 @@ automatic Traefik routing. Run with no arguments to launch the TUI.`,
 
 		rootCfg = cfg
 
+		// First-run setup wizard: show if config file doesn't exist yet.
+		cfgFilePath := cfgFileFlag
+		if cfgFilePath == "" {
+			cfgFilePath = config.DefaultPath()
+		}
+		if _, statErr := os.Stat(cfgFilePath); os.IsNotExist(statErr) {
+			if err := runFirstRunSetup(rootCfg, cfgFilePath); err != nil {
+				printWarn(fmt.Sprintf("first-run setup: %v", err))
+			}
+		}
+
 		// Load registry.
 		reg, err := registry.Load(config.Dir())
 		if err != nil {
@@ -149,6 +164,58 @@ automatic Traefik routing. Run with no arguments to launch the TUI.`,
 
 		return nil
 	},
+}
+
+// expandTilde expands a leading "~/" in p to the user's home directory.
+func expandTilde(p string) string {
+	if strings.HasPrefix(p, "~/") {
+		home, _ := os.UserHomeDir()
+		return filepath.Join(home, p[2:])
+	}
+	return p
+}
+
+// runFirstRunSetup prompts the user for basic configuration and saves config.yml.
+func runFirstRunSetup(cfg *config.Config, cfgPath string) error {
+	fmt.Println("Welcome to atrisos! Let's set up your configuration.")
+	fmt.Println()
+	reader := bufio.NewReader(os.Stdin)
+
+	// Prompt for ACME email.
+	fmt.Printf("ACME email for Let's Encrypt TLS [leave blank to set later]: ")
+	email, _ := reader.ReadString('\n')
+	email = strings.TrimSpace(email)
+	if email != "" {
+		cfg.Traefik.ACMEEmail = email
+	}
+
+	// Prompt for stacks root.
+	fmt.Printf("Stacks root directory [%s]: ", cfg.StacksRoot)
+	root, _ := reader.ReadString('\n')
+	root = strings.TrimSpace(root)
+	if root != "" {
+		cfg.StacksRoot = expandTilde(root)
+	}
+
+	// Save config.
+	if err := os.MkdirAll(filepath.Dir(cfgPath), 0755); err != nil {
+		return err
+	}
+	data, err := yaml.Marshal(cfg)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(cfgPath, data, 0644); err != nil {
+		return err
+	}
+
+	// Create stacks root dir.
+	_ = os.MkdirAll(cfg.StacksRoot, 0755)
+
+	fmt.Println()
+	printSuccess("Configuration saved to " + cfgPath)
+	fmt.Println()
+	return nil
 }
 
 // Execute runs the root command.

@@ -1,0 +1,31 @@
+version: 2
+project_name: atrisos
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: .
+    binary: atrisos
+    goos: [linux, darwin]
+    goarch: [amd64, arm64]
+    ldflags:
+      - -s -w -X github.com/sonmezerekrem/atrisos/cmd.Version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+
+archives:
+  - format: binary
+    name_template: "atrisos-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  version_template: "{{ .Tag }}-snapshot"
+
+release:
+  github:
+    owner: sonmezerekrem
+    name: atrisos

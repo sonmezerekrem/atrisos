@@ -40,7 +40,8 @@ func updateDot() string {
 //   - cursor: index of the selected item in stacks
 //   - filter: current filter string (empty = no filter active)
 //   - width, height: available inner dimensions for the panel
-func RenderList(stacks []*podman.StackStatus, cursor int, filter string, width, height int) string {
+//   - outdatedUpdates: map of stack name → has image updates available
+func RenderList(stacks []*podman.StackStatus, cursor int, filter string, width, height int, outdatedUpdates map[string]bool) string {
 	var sb strings.Builder
 
 	// Heading
@@ -68,7 +69,10 @@ func RenderList(stacks []*podman.StackStatus, cursor int, filter string, width, 
 
 	for i, s := range stacks {
 		dot := statusDot(s)
-		upd := updateDot()
+		upd := ""
+		if outdatedUpdates[s.Stack.Name] {
+			upd = colorBlue.Render("↑")
+		}
 		name := fmt.Sprintf("%-*s", maxLen, s.Stack.Name)
 
 		var line string

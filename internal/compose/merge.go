@@ -3,17 +3,115 @@ package compose
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 
 	"github.com/sonmezerekrem/atrisos/internal/stack"
 	"github.com/sonmezerekrem/atrisos/internal/traefik"
 	"gopkg.in/yaml.v3"
 )
 
+// selinuxEnforcing returns true if SELinux is currently in Enforcing mode.
+// On non-Linux systems it always returns false.
+func selinuxEnforcing() bool {
+	if runtime.GOOS != "linux" {
+		return false
+	}
+	out, err := exec.Command("getenforce").Output()
+	if err != nil {
+		return false
+	}
+	return strings.EqualFold(strings.TrimSpace(string(out)), "Enforcing")
+}
+
+// isBindMountSource returns true if the source path indicates a bind mount
+// (absolute or relative path), as opposed to a named volume.
+func isBindMountSource(src string) bool {
+	return strings.HasPrefix(src, "/") ||
+		strings.HasPrefix(src, "./") ||
+		strings.HasPrefix(src, "../")
+}
+
+// applySelinuxZString appends `:z` to a bind-mount volume string if not
+// already present. Named volumes and volumes that already carry a z/Z option
+// are returned unchanged.
+func applySelinuxZString(vol string) string {
+	parts := strings.SplitN(vol, ":", 3)
+	if len(parts) < 2 {
+		return vol // no target — skip
+	}
+	if !isBindMountSource(parts[0]) {
+		return vol // named volume
+	}
+	if len(parts) == 3 {
+		for _, opt := range strings.Split(parts[2], ",") {
+			if opt == "z" || opt == "Z" {
+				return vol // already labeled
+			}
+		}
+		return vol + ",z"
+	}
+	return vol + ":z"
+}
+
+// applySelinuxZObject adds selinux: z to an object-form bind-mount volume if
+// not already set.
+func applySelinuxZObject(vol map[string]interface{}) {
+	if vol["type"] != "bind" {
+		return
+	}
+	src, _ := vol["source"].(string)
+	if !isBindMountSource(src) {
+		return
+	}
+	if existing, ok := vol["selinux"]; ok && existing != nil && existing != "" {
+		return // already set
+	}
+	vol["selinux"] = "z"
+}
+
+// applySelinuxToAllServices iterates every service in the compose document and
+// labels bind-mount volumes with `:z` for SELinux relabeling.
+func applySelinuxToAllServices(doc ComposeDoc) {
+	services, ok := doc["services"].(map[string]interface{})
+	if !ok {
+		return
+	}
+	for _, svcVal := range services {
+		svc, ok := svcVal.(map[string]interface{})
+		if !ok {
+			continue
+		}
+		vols, ok := svc["volumes"]
+		if !ok || vols == nil {
+			continue
+		}
+		volList, ok := vols.([]interface{})
+		if !ok {
+			continue
+		}
+		for i, vol := range volList {
+			switch v := vol.(type) {
+			case string:
+				volList[i] = applySelinuxZString(v)
+			case map[string]interface{}:
+				applySelinuxZObject(v)
+			}
+		}
+	}
+}
+
 // Merge injects Traefik labels and the atrisos network into the compose
 // document for each domain entry in cfg. The original file is never modified.
 func Merge(doc ComposeDoc, cfg stack.StackConfig, stackPath string) ComposeDoc {
+	selinux := selinuxEnforcing()
+
 	if len(cfg.Domains) == 0 {
+		if selinux {
+			applySelinuxToAllServices(doc)
+		}
 		return doc
 	}
 
@@ -84,6 +182,11 @@ func Merge(doc ComposeDoc, cfg stack.StackConfig, stackPath string) ComposeDoc {
 	}
 	if _, exists := topNetworks[networkName]; !exists {
 		topNetworks[networkName] = map[string]interface{}{"external": true}
+	}
+
+	// Apply SELinux :z to bind-mount volumes across all services.
+	if selinux {
+		applySelinuxToAllServices(doc)
 	}
 
 	return doc

@@ -10,6 +10,8 @@ import (
 	"github.com/charmbracelet/lipgloss"
 
 	"github.com/sonmezerekrem/atrisos/internal/config"
+	"github.com/sonmezerekrem/atrisos/internal/notify"
+	"github.com/sonmezerekrem/atrisos/internal/outdated"
 	"github.com/sonmezerekrem/atrisos/internal/podman"
 	"github.com/sonmezerekrem/atrisos/internal/registry"
 	"github.com/sonmezerekrem/atrisos/internal/stack"
@@ -31,25 +33,30 @@ type refreshTickMsg   struct{}
 type logLineMsg       struct{ line string }
 type logDoneMsg       struct{}
 type errMsg           struct{ err error }
+type outdatedResultMsg struct {
+	updates map[string]bool // stack name → has updates
+}
 
 // ---- AppModel ----
 
 // AppModel is the root bubbletea model for atrisos.
 type AppModel struct {
-	cfg         *config.Config
-	reg         *registry.Registry
-	stacks      []*podman.StackStatus
-	filtered    []*podman.StackStatus
-	cursor      int
-	panel       panelMode
-	filterText  string
-	filtering   bool
-	logModel    logModel
-	width       int
-	height      int
-	traefik     string
-	lastRefresh time.Time
-	err         error
+	cfg            *config.Config
+	reg            *registry.Registry
+	stacks         []*podman.StackStatus
+	filtered       []*podman.StackStatus
+	cursor         int
+	panel          panelMode
+	filterText     string
+	filtering      bool
+	logModel       logModel
+	width          int
+	height         int
+	traefik        string
+	lastRefresh    time.Time
+	err            error
+	outdatedUpdates map[string]bool // stack name → has image updates
+	prevStates      map[string]string // "<stackName>/<service>" → previous container status
 }
 
 func newAppModel(cfg *config.Config, reg *registry.Registry) AppModel {
@@ -91,6 +98,22 @@ func loadStacksCmd(cfg *config.Config, reg *registry.Registry) tea.Cmd {
 func loadTraefikStatusCmd() tea.Cmd {
 	return func() tea.Msg {
 		return traefikStatusMsg{status: checkTraefikStatus()}
+	}
+}
+
+// checkOutdatedCmd runs an async check for image updates across all stacks.
+func checkOutdatedCmd(stacks []*podman.StackStatus) tea.Cmd {
+	return func() tea.Msg {
+		stackList := make([]*stack.Stack, 0, len(stacks))
+		for _, s := range stacks {
+			stackList = append(stackList, s.Stack)
+		}
+		updates, _ := outdated.CheckAll(stackList)
+		result := make(map[string]bool, len(updates))
+		for name := range updates {
+			result[name] = true
+		}
+		return outdatedResultMsg{updates: result}
 	}
 }
 
@@ -146,6 +169,38 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 
 	case stacksLoadedMsg:
+		// Detect unexpected container exits and fire webhooks.
+		for _, ss := range msg.statuses {
+			if ss.Stack.Config.Notify.Webhook == "" {
+				continue
+			}
+			for _, c := range ss.Containers {
+				key := ss.Stack.Name + "/" + c.Service
+				prevStatus, hasPrev := m.prevStates[key]
+				if hasPrev && prevStatus == "running" && (c.Status == "exited" || c.Status == "dead") {
+					webhook := ss.Stack.Config.Notify.Webhook
+					stackName := ss.Stack.Name
+					service := c.Service
+					go notify.Send(webhook, notify.Payload{ //nolint:errcheck
+						Event:     notify.EventContainerExit,
+						Stack:     stackName,
+						Service:   service,
+						Timestamp: time.Now(),
+						Message:   fmt.Sprintf("container %s/%s exited unexpectedly", stackName, service),
+					})
+				}
+			}
+		}
+		// Update previous container states.
+		if m.prevStates == nil {
+			m.prevStates = make(map[string]string)
+		}
+		for _, ss := range msg.statuses {
+			for _, c := range ss.Containers {
+				m.prevStates[ss.Stack.Name+"/"+c.Service] = c.Status
+			}
+		}
+
 		m.stacks = msg.statuses
 		m.applyFilter()
 		if m.cursor >= len(m.filtered) && len(m.filtered) > 0 {
@@ -156,9 +211,15 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.lastRefresh = time.Now()
 		m.err = nil
-		return m, tea.Tick(10*time.Second, func(t time.Time) tea.Msg {
+
+		var cmds []tea.Cmd
+		cmds = append(cmds, tea.Tick(10*time.Second, func(t time.Time) tea.Msg {
 			return refreshTickMsg{}
-		})
+		}))
+		if m.outdatedUpdates == nil {
+			cmds = append(cmds, checkOutdatedCmd(m.stacks))
+		}
+		return m, tea.Batch(cmds...)
 
 	case traefikStatusMsg:
 		m.traefik = msg.status
@@ -181,6 +242,10 @@ func (m AppModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, waitLogLine(m.logModel.ch)
 
 	case logDoneMsg:
+		return m, nil
+
+	case outdatedResultMsg:
+		m.outdatedUpdates = msg.updates
 		return m, nil
 
 	case errMsg:
@@ -336,7 +401,7 @@ func (m AppModel) View() string {
 		innerH = 1
 	}
 
-	leftContent := RenderList(m.filtered, m.cursor, m.filterText, leftW-2, innerH)
+	leftContent := RenderList(m.filtered, m.cursor, m.filterText, leftW-2, innerH, m.outdatedUpdates)
 	leftPanel := panelBorderStyle.
 		Width(leftW - 2).
 		Height(innerH).

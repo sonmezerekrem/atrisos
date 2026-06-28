@@ -5,6 +5,8 @@ import (
 	"runtime"
 
 	"github.com/spf13/cobra"
+
+	"github.com/sonmezerekrem/atrisos/internal/selfupdate"
 )
 
 // Version is set at build time via -ldflags.
@@ -18,7 +20,14 @@ var versionCmd = &cobra.Command{
 		fmt.Printf("atrisos %s\n", Version)
 		fmt.Printf("OS/Arch: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 		fmt.Printf("Go:      %s\n", runtime.Version())
-		// TODO: check GitHub for latest version (background, cached 24h)
+		latest := selfupdate.LatestVersion()
+		if latest != "" && Version != "dev" {
+			if latest != Version {
+				fmt.Printf("Latest:  %s  → run `atrisos self-update` to upgrade\n", latest)
+			} else {
+				fmt.Printf("Latest:  %s (up to date)\n", latest)
+			}
+		}
 	},
 }
 
