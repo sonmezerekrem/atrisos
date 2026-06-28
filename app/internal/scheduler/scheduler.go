@@ -55,7 +55,11 @@ func InstallBackupTimer(s *stack.Stack, atrisosPath string) error {
 }
 
 // RemoveBackupTimer removes the backup timer unit for a stack.
+// No-op if backup was never enabled.
 func RemoveBackupTimer(s *stack.Stack) error {
+	if !s.Config.Backup.Enabled {
+		return nil
+	}
 	switch runtime.GOOS {
 	case "linux":
 		svcUnit := linuxBackupServiceUnit(s.Name)
@@ -176,10 +180,11 @@ func linuxInstallBackupTimer(s *stack.Stack, atrisosPath string) error {
 }
 
 func linuxRemoveUnit(unit string) error {
-	// Best-effort disable; ignore errors if the unit wasn't loaded.
-	_ = systemctlUser("disable", "--now", unit)
-
 	unitPath := filepath.Join(systemdDir(), unit)
+	if _, err := os.Stat(unitPath); os.IsNotExist(err) {
+		return nil
+	}
+	_ = systemctlUser("disable", "--now", unit)
 	if err := os.Remove(unitPath); err != nil && !os.IsNotExist(err) {
 		return fmt.Errorf("removing %s: %w", unitPath, err)
 	}
