@@ -13,7 +13,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const BaseURL = "https://atrisos-templates.sonmezerekrem.com"
+const (
+	repoOwner = "sonmezerekrem"
+	repoName  = "atrisos"
+	branch    = "main"
+)
 
 // cacheDir returns ~/.config/atrisos/templates-cache
 func cacheDir() string {
@@ -24,8 +28,15 @@ func cacheDir() string {
 	return filepath.Join(home, ".config", "atrisos", "templates-cache")
 }
 
-func manifestURL() string            { return BaseURL + "/manifest.json" }
-func rawURL(relPath string) string    { return BaseURL + "/" + relPath }
+func manifestURL() string {
+	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/templates/manifest.json",
+		repoOwner, repoName, branch)
+}
+
+func rawURL(relPath string) string {
+	return fmt.Sprintf("https://raw.githubusercontent.com/%s/%s/%s/templates/%s",
+		repoOwner, repoName, branch, relPath)
+}
 
 // Manifest is the index of available templates.
 type Manifest struct {

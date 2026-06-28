@@ -4,7 +4,6 @@ set -e
 VERSION=""
 PREFIX=""
 
-# Parse flags
 while [ $# -gt 0 ]; do
   case "$1" in
     --version) VERSION="$2"; shift 2 ;;
@@ -46,11 +45,9 @@ esac
 # ---------------------------------------------------------------------------
 
 install_podman_macos() {
-  # Ensure Homebrew is present
   if ! have brew; then
     info "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    # Add brew to PATH for the rest of this script
     if [ -d "/opt/homebrew/bin" ]; then
       export PATH="/opt/homebrew/bin:$PATH"
     elif [ -d "/usr/local/bin" ]; then
@@ -68,15 +65,14 @@ install_podman_macos() {
 }
 
 install_podman_linux() {
-  # Detect package manager
   if have apt-get; then
     info "Installing Podman via apt..."
     sudo apt-get update -qq
     sudo apt-get install -y podman
-    # Install podman-compose as fallback for older Podman (< 4.7)
     PODMAN_VER="$(podman --version 2>/dev/null | awk '{print $3}')"
     PODMAN_MAJOR="$(echo "$PODMAN_VER" | cut -d. -f1)"
-    if [ "${PODMAN_MAJOR:-0}" -lt 4 ] || { [ "${PODMAN_MAJOR:-0}" -eq 4 ] && [ "$(echo "$PODMAN_VER" | cut -d. -f2)" -lt 7 ]; }; then
+    PODMAN_MINOR="$(echo "$PODMAN_VER" | cut -d. -f2)"
+    if [ "${PODMAN_MAJOR:-0}" -lt 4 ] || { [ "${PODMAN_MAJOR:-0}" -eq 4 ] && [ "${PODMAN_MINOR:-0}" -lt 7 ]; }; then
       info "Podman < 4.7 detected — installing podman-compose..."
       sudo apt-get install -y podman-compose || true
     fi
@@ -127,8 +123,8 @@ fi
 # Download atrisos binary
 # ---------------------------------------------------------------------------
 
-ASSET="atrisos-${OS}-${ARCH}"
 REPO="sonmezerekrem/atrisos"
+ASSET="atrisos-${OS}-${ARCH}"
 
 if [ -z "$PREFIX" ]; then
   if [ "$OS" = "darwin" ] && [ -d "/opt/homebrew" ]; then
@@ -141,29 +137,17 @@ fi
 INSTALL_DIR="$PREFIX/bin"
 INSTALL_PATH="$INSTALL_DIR/atrisos"
 
-TMP="$(mktemp)"
-
-# Use gh CLI if available (works with private repos)
-if have gh; then
-  if [ -z "$VERSION" ]; then
-    info "Fetching latest atrisos release..."
-    VERSION="$(gh release list -R "$REPO" --limit 1 --json tagName -q '.[0].tagName')"
-    [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
-  fi
-  info "Installing atrisos $VERSION ($OS/$ARCH)..."
-  gh release download "$VERSION" -R "$REPO" --pattern "$ASSET" -O "$TMP"
-else
-  # Fallback: public curl download
-  if [ -z "$VERSION" ]; then
-    info "Fetching latest atrisos release..."
-    VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
-      | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
-    [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
-  fi
-  info "Installing atrisos $VERSION ($OS/$ARCH)..."
-  curl -fsSL "https://github.com/${REPO}/releases/download/${VERSION}/${ASSET}" -o "$TMP"
+if [ -z "$VERSION" ]; then
+  info "Fetching latest atrisos release..."
+  VERSION="$(curl -fsSL "https://api.github.com/repos/${REPO}/releases/latest" \
+    | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
+  [ -z "$VERSION" ] && die "Failed to fetch latest version. Use --version to specify one."
 fi
 
+info "Installing atrisos $VERSION ($OS/$ARCH)..."
+
+TMP="$(mktemp)"
+curl -fsSL "https://github.com/${REPO}/releases/download/${VERSION}/${ASSET}" -o "$TMP"
 chmod +x "$TMP"
 
 if [ -w "$INSTALL_DIR" ]; then
