@@ -108,7 +108,7 @@ fi
 
 if [ "$OS" = "linux" ]; then
   REGISTRIES_CONF="/etc/containers/registries.conf"
-  if ! grep -q "unqualified-search-registries" "$REGISTRIES_CONF" 2>/dev/null; then
+  if ! grep -q "^unqualified-search-registries" "$REGISTRIES_CONF" 2>/dev/null; then
     info "Configuring Podman to search docker.io for unqualified image names..."
     printf '\nunqualified-search-registries = ["docker.io"]\n' \
       | sudo tee -a "$REGISTRIES_CONF" > /dev/null
