@@ -1,0 +1,22 @@
+name: "{{.Name}}"
+description: "Private container image registry"
+tags:
+  - infrastructure
+meta: {}
+
+domains:
+  - service: registry
+    host: "{{.domain}}"
+    port: 5000
+    tls: true
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - registry_data

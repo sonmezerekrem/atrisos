@@ -1,0 +1,24 @@
+name: "{{.Name}}"
+description: "WordPress with MySQL 8"
+tags:
+  - web
+  - cms
+meta: {}
+
+domains:
+  - service: wordpress
+    host: "{{.domain}}"
+    port: 80
+    tls: true
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - wp_data
+    - db_data

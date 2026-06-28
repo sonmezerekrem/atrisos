@@ -1,0 +1,17 @@
+name: "{{.Name}}"
+description: "Valkey 8.1 (Redis-compatible)"
+tags:
+  - cache
+  - database
+meta: {}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - valkey_data

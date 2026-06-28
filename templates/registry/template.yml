@@ -1,0 +1,8 @@
+name: registry
+display: Docker Registry
+description: Private container image registry (registry:2) with TLS via Traefik
+prompts:
+  - name: domain
+    label: "Registry domain (e.g. registry.example.com)"
+    type: string
+    required: true

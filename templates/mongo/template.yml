@@ -1,0 +1,16 @@
+name: mongo
+display: MongoDB 8
+description: MongoDB 8 document database with scheduled backups
+prompts:
+  - name: db_name
+    label: "Database name"
+    type: string
+    default: "app"
+  - name: db_user
+    label: "Root username"
+    type: string
+    default: "app"
+  - name: external_port
+    label: "Host port to bind MongoDB on"
+    type: int
+    default: "27017"

@@ -1,0 +1,16 @@
+name: "{{.Name}}"
+description: "MongoDB 8"
+tags:
+  - database
+meta: {}
+
+update:
+  mode: manual
+
+auto_start: true
+
+backup:
+  enabled: true
+  schedule: "0 3 * * *"
+  volumes:
+    - mongo_data

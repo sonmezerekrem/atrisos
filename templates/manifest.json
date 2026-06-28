@@ -1,5 +1,5 @@
 {
-  "version": "2026-06-28T00:00:00Z",
+  "version": "2026-06-28T12:00:00Z",
   "templates": [
     {
       "name": "basic",
@@ -10,6 +10,31 @@
       "name": "webapp-postgres",
       "display": "Web App + PostgreSQL",
       "description": "Web service backed by PostgreSQL with backup enabled"
+    },
+    {
+      "name": "postgres",
+      "display": "PostgreSQL 16",
+      "description": "Standalone PostgreSQL 16 Alpine database with scheduled backups"
+    },
+    {
+      "name": "valkey",
+      "display": "Valkey 8.1",
+      "description": "Valkey 8.1 key-value store (Redis-compatible) with persistence"
+    },
+    {
+      "name": "mongo",
+      "display": "MongoDB 8",
+      "description": "MongoDB 8 document database with scheduled backups"
+    },
+    {
+      "name": "wordpress",
+      "display": "WordPress",
+      "description": "WordPress with MySQL 8 and automatic TLS"
+    },
+    {
+      "name": "registry",
+      "display": "Docker Registry",
+      "description": "Private container image registry (registry:2) with TLS via Traefik"
     }
   ]
 }

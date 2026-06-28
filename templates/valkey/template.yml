@@ -1,0 +1,8 @@
+name: valkey
+display: Valkey 8.1
+description: Valkey 8.1 key-value store (Redis-compatible) with persistence
+prompts:
+  - name: external_port
+    label: "Host port to bind Valkey on"
+    type: int
+    default: "6379"

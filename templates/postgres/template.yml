@@ -1,0 +1,16 @@
+name: postgres
+display: PostgreSQL 16
+description: Standalone PostgreSQL 16 Alpine database with scheduled backups
+prompts:
+  - name: db_name
+    label: "Database name"
+    type: string
+    default: "app"
+  - name: db_user
+    label: "Database user"
+    type: string
+    default: "app"
+  - name: external_port
+    label: "Host port to bind PostgreSQL on"
+    type: int
+    default: "5432"

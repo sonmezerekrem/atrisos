@@ -1,0 +1,16 @@
+name: wordpress
+display: WordPress
+description: WordPress with MySQL 8 and automatic TLS
+prompts:
+  - name: domain
+    label: "Domain hostname (e.g. blog.example.com)"
+    type: string
+    required: true
+  - name: db_name
+    label: "WordPress database name"
+    type: string
+    default: "wordpress"
+  - name: db_user
+    label: "WordPress database user"
+    type: string
+    default: "wordpress"
