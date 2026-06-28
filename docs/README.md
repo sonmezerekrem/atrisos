@@ -35,3 +35,4 @@ atrisos lets you run self-hosted applications as Compose stacks with a consisten
 | [global-config.md](global-config.md) | Global atrisos config file schema |
 | [install.md](install.md) | Installation and first-run guide |
 | [templates.md](templates.md) | Stack init templates: format, available templates, how to add new ones |
+| [agents/create-stack.md](agents/create-stack.md) | AI agent prompt for generating atrisos stacks — paste into any AI assistant |

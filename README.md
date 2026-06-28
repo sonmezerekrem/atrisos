@@ -136,6 +136,7 @@ atrisos_net    <- shared Podman network
 - [Global config](docs/global-config.md)
 - [Installation and first run](docs/install.md)
 - [Init templates](docs/templates.md)
+- [AI agent prompt — generate stacks with any AI assistant](docs/agents/create-stack.md)
 
 ---
 
